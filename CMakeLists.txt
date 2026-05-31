@@ -18,6 +18,7 @@ set(SOURCES
     src/armv7_generator.cpp
     src/gramatica.cpp
     src/parser.cpp
+    src/semantic_analyzer.cpp
 )
 
 # Define o nome do executável e o(s) arquivo(s) fonte

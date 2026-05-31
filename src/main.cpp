@@ -16,6 +16,7 @@
 #include "parser.hpp"
 #include "testes.hpp"
 #include "ast_exporter.hpp"
+#include "semantic_analyzer.hpp"
 
 using namespace std;
 
@@ -54,40 +55,20 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Alocar memoria dinamica para o buffer de linhas
-    vector<string> buffer_linhas;
-
-    // Extrair os dados do arquivo e armazenar no buffer
-    try
-    {
-        lerArquivo(arq, buffer_linhas);
-    }
-    catch (std::exception &e)
-    {
-        cerr << "Erro ao ler arquivo " << arq << "\n";
-        return 1;
-    }
-
     // struct para acumular todos os erros
     vector<ErroAnalise> erros;
 
     // ANALISE LEXICA
+    // ler o arquivo, remover comentários "*{" "}*" e tokenizar
     vector<string> tokens_linha;
-    for (size_t i = 0; i < buffer_linhas.size(); ++i) 
+    try
     {
-        size_t marca = tokens_linha.size(); // ponto para descartar tokens parciais da linha
-        try
-        {
-            parseExpressao(buffer_linhas[i], tokens_linha, (int)(i + 1));
-        }
-        catch (const std::exception &e)
-        {
-            tokens_linha.resize(marca); // descarta o que foi tokenizado na linha com erro
-            std::string msg = e.what();
-            while (!msg.empty() && (msg.back() == '\n' || msg.back() == '\r'))
-                msg.pop_back();
-            erros.push_back(ErroAnalise{(int)(i + 1), "LEXICO", msg});
-        }
+        tokens_linha = prepararEntradaSemantica(arq, erros);
+    }
+    catch (const std::exception &e)
+    {
+        cerr << "Erro ao ler arquivo " << arq << "\n";
+        return 1;
     }
 
     try
@@ -127,9 +108,17 @@ int main(int argc, char *argv[])
     // recuperacao por linha, sem efeito cascata
 
     // VALIDACAO ESTRUTURAL DO PROGRAMA
-    // Todo programa deve COMECAR com a linha (START) e TERMINAR com (END)
+    // (START) e (END) devem aparecer exatamente uma vez, como primeira e ultima linha
     if (!vtokens.empty())
     {
+        int countStart = 0, countEnd = 0;
+        for (const TokenData &tk : vtokens)
+            if (tk.tipo == T_PALAVRA_RES)
+            {
+                if (tk.valor == "START") countStart++;
+                if (tk.valor == "END")   countEnd++;
+            }
+
         // (START) gera os tokens PARENTESE_ESQ, START, PARENTESE_DIR.
         // Logo, o primeiro token e PARENTESE_ESQ e o segundo deve ser START.
         bool comecaStart = (vtokens.size() >= 2 &&
@@ -149,6 +138,14 @@ int main(int argc, char *argv[])
         if (!terminaEnd)
             erros.push_back(ErroAnalise{vtokens.back().linha, "SINTATICO",
                 "programa deve terminar com a linha (END)"});
+
+        if (countStart > 1)
+            erros.push_back(ErroAnalise{vtokens.front().linha, "SINTATICO",
+                "(START) deve aparecer exatamente uma vez, apenas na primeira linha"});
+
+        if (countEnd > 1)
+            erros.push_back(ErroAnalise{vtokens.back().linha, "SINTATICO",
+                "(END) deve aparecer exatamente uma vez, apenas na ultima linha"});
     }
 
     // Cada linha entre (START) e (END) e uma expressao independente
