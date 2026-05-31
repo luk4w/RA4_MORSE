@@ -1,4 +1,4 @@
 build
-ROADMAP.md
 .codegraph/
-FASE3.md
+*.md
+!README.md
