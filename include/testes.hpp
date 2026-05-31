@@ -206,7 +206,7 @@ inline void testeSintaticoRelacionais() {
     std::cout << "  -> [OK] Todos os operadores relacionais\n";
 }
 
-inline void testeSintatico_Erro_MultiploSTART() {
+inline void testeSintaticoErroMultiploSTART() {
     bool lancou = false;
     try { 
         // A logica de START/END unico esta no main.cpp, 
@@ -243,9 +243,7 @@ inline void executarTestesEtapa2() {
     testeSintaticoIFELSE();
     testeSintaticoWHILE();
     testeSintaticoRelacionais();
-    
-    // Novos testes solicitados
-    testeSintatico_Erro_MultiploSTART();
+    testeSintaticoErroMultiploSTART();
     testeSintaticoErroMultiploEND();
     
     std::cout << "[SUCESSO] Etapa 2 (Parser) validada!\n";
