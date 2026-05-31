@@ -10,7 +10,7 @@ Ano: 2026
 
 > Devido a plataforma do github não permitir a criação de repositórios com espaços, o nome do grupo foi alterado para RA3_2, no entanto, o nome real do grupo é RA3 2.
 
-O `ANALISADOR SINTÁTICO` é a terceira fase do projeto da disciplina de `Linguagens Formais e Compiladores` ministrada pelo professor `Frank de Alcantara` na `Pontifícia Universidade Católica do Paraná`.
+O `ANALISADOR SEMÂNTICO` é a terceira fase do projeto da disciplina de `Linguagens Formais e Compiladores` ministrada pelo professor `Frank de Alcantara` na `Pontifícia Universidade Católica do Paraná`.
 
 ## Instruções de Compilação e Execução
 
@@ -63,7 +63,7 @@ Exemplos usando os arquivos de teste fornecidos na pasta `tests/`:
 | `ast_saida.json` | Árvore Sintática Abstrata (AST) serializada em JSON. |
 | `saida.s` | Código Assembly ARMv7 gerado a partir da AST. |
 
-Se o programa **contém erros**, é exibido um **relatório de erros** (com tipo `LEXICO`/`SINTATICO` e número da linha) e nenhum código Assembly é gerado — o processo encerra com código de saída `1`.
+Se o programa **contém erros**, é exibido um **relatório de erros** (com tipo `LEXICO`/`SINTATICO`/`SEMANTICO` e número da linha) e nenhum código Assembly é gerado — o processo encerra com código de saída `1`.
 
 ### Sintaxe das Estruturas de Controle
 
@@ -127,7 +127,7 @@ Carrega na pilha da FPU o valor atual armazenado na variável identificada. Se a
 
 ## Gramática EBNF LL(1) Fatorada
 
-Para garantir que o Analisador Sintático opere de forma determinística, a gramática em Notação Polonesa Reversa (RPN) foi submetida à Fatoração à Esquerda. Isso eliminou os conflitos de derivação, e resultou na seguinte estrutura formal:
+Para garantir que o Analisador SEMÂNTICO opere de forma determinística, a gramática em Notação Polonesa Reversa (RPN) foi submetida à Fatoração à Esquerda. Isso eliminou os conflitos de derivação, e resultou na seguinte estrutura formal:
 
 **Regras de Produção:**
 1. `programa -> PARENTESE_ESQ START PARENTESE_DIR sequencia_execucao`
@@ -175,7 +175,7 @@ O cálculo teórico exigido para provar a ausência de conflitos ambíguos na á
 
 A tabela LL(1) serve para guiar o parser preditivo descendente na determinação de qual regra gramatical (produção) deve ser aplicada a seguir, sem precisar de backtracking.
 
-Células vazias indicam erro sintático. $\epsilon$ indica derivação para vazio.
+Células vazias indicam erro SEMÂNTICO. $\epsilon$ indica derivação para vazio.
 
 #### Formato compacto
 `M[Não-terminal, Terminal] = Produção`
@@ -247,8 +247,8 @@ O analisador implementa **recuperação de erros** (*panic mode*) com granularid
 
 1. **Análise léxica** — cada linha é tokenizada isoladamente. Se uma linha contém um erro léxico (ex.: número malformado `10..5`, operador inexistente `//`, caractere inválido `@`), o erro é registrado, os tokens parciais daquela linha são descartados e a análise segue para a próxima linha.
 2. **Validação estrutural** — verifica-se que o programa possui as linhas obrigatórias `(START)` e `(END)`.
-3. **Análise sintática** — executa **sempre**, mesmo que existam erros léxicos. Como as linhas lexicamente inválidas já tiveram seus tokens descartados, elas não chegam ao parser e **não geram erros sintáticos falsos** (evitando o efeito *cascata*). Cada linha de expressão é analisada isoladamente: monta-se internamente um miniprograma `(START) <linha> (END)` e invoca-se o parser LL(1); se a linha falha, o erro é registrado e a análise continua na próxima linha.
-4. **Relatório de erros** — todos os erros (léxicos e sintáticos) são acumulados, **ordenados por número de linha** e exibidos juntos, indicando o tipo (`LEXICO`/`SINTATICO`), a linha e a mensagem.
+3. **Análise sintática** — executa **sempre**, mesmo que existam erros léxicos. Como as linhas lexicamente inválidas já tiveram seus tokens descartados, elas não chegam ao parser e **não geram erros SEMÂNTICOs falsos** (evitando o efeito *cascata*). Cada linha de expressão é analisada isoladamente: monta-se internamente um miniprograma `(START) <linha> (END)` e invoca-se o parser LL(1); se a linha falha, o erro é registrado e a análise continua na próxima linha.
+4. **Relatório de erros** — todos os erros (léxicos e SEMÂNTICOs) são acumulados, **ordenados por número de linha** e exibidos juntos, indicando o tipo (`LEXICO`/`SINTATICO`), a linha e a mensagem.
 5. **Gate de geração de código** — o código Assembly **só é gerado se não houver nenhum erro**. Havendo qualquer erro, o programa exibe o relatório e encerra com código de saída `1`, sem produzir `saida.s`.
 
 ### Mensagens de erro
@@ -269,7 +269,7 @@ As mensagens incluem sempre o **número da linha** e o **tipo** do erro. Exemplo
 ============================================================
 ```
 
-Os arquivos `tests/teste_erro_lexico.txt` e `tests/teste_erro_sintatico.txt` exercitam, respectivamente, a recuperação de erros léxicos e sintáticos.
+Os arquivos `tests/teste_erro_lexico.txt` e `tests/teste_erro_sintatico.txt` exercitam, respectivamente, a recuperação de erros léxicos e SEMÂNTICOs.
 
 
 ## Resultados
