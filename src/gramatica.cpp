@@ -26,7 +26,8 @@ bool isTerminal(const string &simbolo)
             simbolo == "START" || simbolo == "END" || simbolo == "NUMERO" ||
             simbolo == "IDENTIFICADOR" || simbolo == "OPERADOR" ||
             simbolo == "OPERADOR_RELACIONAL" || simbolo == "WHILE" ||
-            simbolo == "IFELSE" || simbolo == "RES");
+            simbolo == "IFELSE" || simbolo == "RES" ||
+            simbolo == "TRUE" || simbolo == "FALSE");
 }
 
 // Calcula os conjuntos FIRST algoritmicamente
@@ -198,13 +199,12 @@ void construirGramatica()
 
     gramatica["expressao_aninhada"] = {{"PARENTESE_ESQ", "corpo_expressao", "PARENTESE_DIR"}};
 
-    gramatica["operando"] = {{"NUMERO"}, {"expressao_aninhada"}};
+    gramatica["operando"] = {{"NUMERO"}, {"TRUE"}, {"FALSE"}, {"expressao_aninhada"}};
 
     gramatica["corpo_expressao"] = {
         {"IDENTIFICADOR"},
         {"operando", "complemento_expressao"}};
 
-    // REGRA ATUALIZADA: Injeção da Produção Vazia
     gramatica["complemento_expressao"] = {
         {"IDENTIFICADOR"},
         {"RES"},
