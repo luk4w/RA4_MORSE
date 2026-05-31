@@ -36,11 +36,12 @@ struct ASTNode
     TipoDado tipoDado = TipoDado::DESCONHECIDO;
     std::string opcode;   // "VADD.F64", "VDIV.F64"
     std::string operando; // "10.0", "VAR_X"
+    int linha;            // Linha do código fonte
 
     std::vector<ASTNode *> filhos;
 
     // Construtor para facilitar a criacao de nos
-    ASTNode(ASTNodeType t, std::string opc = "", std::string opnd = "") : tipo(t), opcode(opc), operando(opnd) {}
+    ASTNode(ASTNodeType t, int lin, std::string opc = "", std::string opnd = "") : tipo(t), linha(lin), opcode(opc), operando(opnd) {}
 
     // Destrutor para evitar memory leaks
     ~ASTNode()

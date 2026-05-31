@@ -114,7 +114,7 @@ Derivacao parsear(const vector<TokenData> &tokens,
                                : decodificarToken(tokens[indexToken], valorReal);
 
     // No raiz - será preenchido ao final
-    ASTNode *raiz = new ASTNode(ASTNodeType::PROGRAMA, "programa");
+    ASTNode *raiz = new ASTNode(ASTNodeType::PROGRAMA, (tokens.empty() ? 0 : tokens[0].linha), "programa");
 
     // Lambda: avança para o próximo token
     auto avancar = [&]()
@@ -231,7 +231,7 @@ Derivacao parsear(const vector<TokenData> &tokens,
             // Tem um valor antes do identificador -> é um STORE
             ASTNode *idNode = frame.back();
             frame.pop_back();
-            ASTNode *no = new ASTNode(ASTNodeType::MEMORIA_STORE,
+            ASTNode *no = new ASTNode(ASTNodeType::MEMORIA_STORE, idNode->linha,
                                       "VSTR.F64", idNode->operando);
             // O valor a armazenar é o operando anterior
             no->filhos.push_back(frame.back());
@@ -296,6 +296,7 @@ Derivacao parsear(const vector<TokenData> &tokens,
             }
 
             // acoesa semantica por tipo de terminal
+            int linhaAtual = (indexToken < tokens.size()) ? tokens[indexToken].linha : (tokens.empty() ? 0 : tokens.back().linha);
             if (topo == "PARENTESE_ESQ")
             {
                 // Abre novo frame de operandos para o nivel
@@ -310,7 +311,7 @@ Derivacao parsear(const vector<TokenData> &tokens,
             }
             else if (topo == "NUMERO")
             {
-                ASTNode *no = new ASTNode(ASTNodeType::NUMERO_LITERAL,
+                ASTNode *no = new ASTNode(ASTNodeType::NUMERO_LITERAL, linhaAtual,
                                           "NUMERO", valorReal);
                 pilhaFrames.top().push_back(no);
                 avancar();
@@ -318,42 +319,42 @@ Derivacao parsear(const vector<TokenData> &tokens,
             else if (topo == "IDENTIFICADOR")
             {
                 // Cria provisoriamente como LOAD; reduzirFrame decide se é STORE
-                ASTNode *no = new ASTNode(ASTNodeType::MEMORIA_LOAD,
+                ASTNode *no = new ASTNode(ASTNodeType::MEMORIA_LOAD, linhaAtual,
                                           "VLDR.F64", valorReal);
                 pilhaFrames.top().push_back(no);
                 avancar();
             }
             else if (topo == "OPERADOR")
             {
-                ASTNode *no = new ASTNode(ASTNodeType::INSTRUCAO_VFP,
+                ASTNode *no = new ASTNode(ASTNodeType::INSTRUCAO_VFP, linhaAtual,
                                           resolverOpcode(valorReal), valorReal);
                 pilhaFrames.top().push_back(no);
                 avancar();
             }
             else if (topo == "OPERADOR_RELACIONAL")
             {
-                ASTNode *no = new ASTNode(ASTNodeType::INSTRUCAO_CMP,
+                ASTNode *no = new ASTNode(ASTNodeType::INSTRUCAO_CMP, linhaAtual,
                                           valorReal, valorReal);
                 pilhaFrames.top().push_back(no);
                 avancar();
             }
             else if (topo == "WHILE")
             {
-                ASTNode *no = new ASTNode(ASTNodeType::COMANDO_WHILE,
+                ASTNode *no = new ASTNode(ASTNodeType::COMANDO_WHILE, linhaAtual,
                                           "WHILE", "WHILE");
                 pilhaFrames.top().push_back(no);
                 avancar();
             }
             else if (topo == "IFELSE")
             {
-                ASTNode *no = new ASTNode(ASTNodeType::COMANDO_IFELSE,
+                ASTNode *no = new ASTNode(ASTNodeType::COMANDO_IFELSE, linhaAtual,
                                           "IFELSE", "IFELSE");
                 pilhaFrames.top().push_back(no);
                 avancar();
             }
             else if (topo == "TRUE" || topo == "FALSE")
             {
-                ASTNode *no = new ASTNode(ASTNodeType::BOOL_LITERAL,
+                ASTNode *no = new ASTNode(ASTNodeType::BOOL_LITERAL, linhaAtual,
                                           topo, valorReal);
                 no->tipoDado = TipoDado::BOOL;
                 pilhaFrames.top().push_back(no);
@@ -361,7 +362,7 @@ Derivacao parsear(const vector<TokenData> &tokens,
             }
             else if (topo == "RES")
             {
-                ASTNode *no = new ASTNode(ASTNodeType::MEMORIA_RES,
+                ASTNode *no = new ASTNode(ASTNodeType::MEMORIA_RES, linhaAtual,
                                           "RES", "RES");
                 pilhaFrames.top().push_back(no);
                 avancar();
