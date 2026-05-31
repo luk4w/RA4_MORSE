@@ -351,6 +351,14 @@ Derivacao parsear(const vector<TokenData> &tokens,
                 pilhaFrames.top().push_back(no);
                 avancar();
             }
+            else if (topo == "TRUE" || topo == "FALSE")
+            {
+                ASTNode *no = new ASTNode(ASTNodeType::BOOL_LITERAL,
+                                          topo, valorReal);
+                no->tipoDado = TipoDado::BOOL;
+                pilhaFrames.top().push_back(no);
+                avancar();
+            }
             else if (topo == "RES")
             {
                 ASTNode *no = new ASTNode(ASTNodeType::MEMORIA_RES,

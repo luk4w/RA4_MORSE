@@ -16,14 +16,24 @@ enum class ASTNodeType
     MEMORIA_STORE,  // "VSTR.F64", operando = "X"
     MEMORIA_RES,    // Historico de resultados (RES)
     NUMERO_LITERAL, // Folha da arvore, operando = "10.0"
+    BOOL_LITERAL,   // Literal TRUE ou FALSE
     COMANDO_WHILE,
     COMANDO_IFELSE,
     INSTRUCAO_CMP
 };
 
+enum class TipoDado
+{
+    DESCONHECIDO,
+    INT,
+    REAL,
+    BOOL
+};
+
 struct ASTNode
 {
     ASTNodeType tipo;
+    TipoDado tipoDado = TipoDado::DESCONHECIDO;
     std::string opcode;   // "VADD.F64", "VDIV.F64"
     std::string operando; // "10.0", "VAR_X"
 
