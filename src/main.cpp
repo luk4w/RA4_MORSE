@@ -230,6 +230,12 @@ int main(int argc, char *argv[])
     // ANALISE SEMANTICA
     TabelaSimbolos tabelaSimbolos;
     construirTabelaSimbolos(arvore, tabelaSimbolos, erros);
+
+    // Verificacao e inferencia de tipos
+    // anotar tipoDado nos nós e na tabela
+    verificarTipos(arvore, tabelaSimbolos, erros);
+
+    // Exporta a tabela ja com os tipos inferidos pela verificacao
     exportarTabelaSimbolos(tabelaSimbolos, "TABELA_SIMBOLOS.md");
 
     // Relatorio de erros

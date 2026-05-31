@@ -57,3 +57,31 @@ void construirTabelaSimbolos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<
  * @brief Exporta a tabela de simbolos para um arquivo Markdown
  */
 void exportarTabelaSimbolos(const TabelaSimbolos &tabela, const std::string &arquivo);
+
+/**
+ * @brief Nome textual de um TipoDado ("INT", "REAL", "BOOL", "DESCONHECIDO")
+ */
+std::string nomeTipoDado(TipoDado t);
+
+/**
+ * @brief Percorre a AST inferindo e validando os tipos de cada no (pos-ordem)
+ *
+ * Politica de tipos (estrita, sem coercao int<->real):
+ * + - *        == operandos do mesmo tipo numerico  (int x int -> int, real x real -> real)
+ * | (div real) == operandos do mesmo tipo numerico -> real
+ * ^ (potencia) == operandos do mesmo tipo numerico -> esse tipo
+ * / %          == somente int x int -> int (regra de especificacao)
+ * relacionais  == < > <= >= sobre numericos do mesmo tipo -> bool; == != sobre mesmo tipo -> bool
+ * IFELSE       == condicao bool; ramos then/else do mesmo tipo
+ * WHILE        == condicao bool
+ * (N RES)      == N deve ser int; tipo do resultado e resolvido em runtime (DESCONHECIDO estatico)
+ *
+ * Anota `tipoDado` em cada no visitado e infere o tipo das variaveis na tabela
+ * DESCONHECIDO funciona como coringa na recuperacao de erro para evitar falsos positivos em cascata
+ *
+ * @param raiz Ponteiro para a raiz da AST
+ * @param tabela Tabela de simbolos com os tipos a serem inferidos
+ * @param erros Vetor para acumular erros semanticos de tipo
+ * @return Tipo inferido da subarvore
+ */
+TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroAnalise> &erros);

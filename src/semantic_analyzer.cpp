@@ -160,6 +160,21 @@ void construirTabelaSimbolos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<
     }
 }
 
+std::string nomeTipoDado(TipoDado t)
+{
+    switch (t)
+    {
+    case TipoDado::INT:
+        return "INT";
+    case TipoDado::REAL:
+        return "REAL";
+    case TipoDado::BOOL:
+        return "BOOL";
+    default:
+        return "DESCONHECIDO";
+    }
+}
+
 void exportarTabelaSimbolos(const TabelaSimbolos &tabela, const std::string &arquivo)
 {
     std::ofstream out(arquivo);
@@ -172,14 +187,7 @@ void exportarTabelaSimbolos(const TabelaSimbolos &tabela, const std::string &arq
 
     for (const auto &[nome, sim] : tabela)
     {
-        std::string tipoStr;
-        switch (sim.tipo)
-        {
-        case TipoDado::INT: tipoStr = "INT"; break;
-        case TipoDado::REAL: tipoStr = "REAL"; break;
-        case TipoDado::BOOL: tipoStr = "BOOL"; break;
-        default: tipoStr = "DESCONHECIDO"; break;
-        }
+        std::string tipoStr = nomeTipoDado(sim.tipo);
 
         std::string linhasUso;
         for (size_t i = 0; i < sim.linhasUso.size(); ++i)
@@ -195,4 +203,249 @@ void exportarTabelaSimbolos(const TabelaSimbolos &tabela, const std::string &arq
     }
 
     out.close();
+}
+
+// Verificacao de tipos
+namespace
+{
+    // Verdadeiro para int ou real
+    bool isNumerico(TipoDado t)
+    {
+        return t == TipoDado::INT || t == TipoDado::REAL;
+    }
+
+    // Acrescenta um erro semantico ao acumulador
+    void erroTipo(std::vector<ErroAnalise> &erros, int linha, const std::string &msg)
+    {
+        erros.push_back(ErroAnalise{linha, "SEMANTICO", msg});
+    }
+
+    // Valida um operador aritmetico/exponencial binario e devolve o tipo do resultado
+    // Politica estrita
+    // operandos devem ter o mesmo tipo numerico
+    TipoDado tiparAritmetico(const std::string &op, TipoDado a, TipoDado b, int linha, std::vector<ErroAnalise> &erros)
+    {
+        // Divisao inteira e resto
+        // exclusivos de inteiros (regra de especificacao)
+        if (op == "/" || op == "%")
+        {
+            bool aRuim = (a != TipoDado::INT && a != TipoDado::DESCONHECIDO);
+            bool bRuim = (b != TipoDado::INT && b != TipoDado::DESCONHECIDO);
+            if (aRuim || bRuim)
+            {
+                std::string nomeOp = (op == "/") ? "divisao inteira '/'" : "resto '%'";
+                erroTipo(erros, linha,
+                         "operador de " + nomeOp + " exige operandos inteiros, encontrado " +
+                             nomeTipoDado(a) + " e " + nomeTipoDado(b));
+            }
+            return TipoDado::INT; // assume int na recuperacao de erro
+        }
+
+        // Demais operadores + - * | ^
+        // exigem operandos numericos do mesmo tipo
+        if (a == TipoDado::DESCONHECIDO && b == TipoDado::DESCONHECIDO)
+            return TipoDado::DESCONHECIDO;
+
+        bool aNaoNum = (a != TipoDado::DESCONHECIDO && !isNumerico(a));
+        bool bNaoNum = (b != TipoDado::DESCONHECIDO && !isNumerico(b));
+        if (aNaoNum || bNaoNum)
+        {
+            erroTipo(erros, linha,
+                     "operador '" + op + "' exige operandos numericos, encontrado " +
+                         nomeTipoDado(a) + " e " + nomeTipoDado(b));
+            return TipoDado::DESCONHECIDO;
+        }
+
+        // Ambos numericos ou um deles DESCONHECIDO
+        // nao pode misturar int com real
+        if (a != TipoDado::DESCONHECIDO && b != TipoDado::DESCONHECIDO && a != b)
+        {
+            erroTipo(erros, linha,
+                     "operador '" + op + "' nao permite misturar tipos: " +
+                         nomeTipoDado(a) + " com " + nomeTipoDado(b) +
+                         " (tipagem forte, sem coercao)");
+            return TipoDado::DESCONHECIDO;
+        }
+
+        // Tipo numerico conhecido 
+        // resolve mesmo se um lado for DESCONHECIDO
+        TipoDado num = (a != TipoDado::DESCONHECIDO) ? a : b;
+
+        if (op == "|") // divisao real com resultado sempre real
+            return TipoDado::REAL;
+        return num; // + - * ^ preservam o tipo dos operandos
+    }
+
+    // Valida um operador relacional e devolve bool
+    TipoDado tiparRelacional(const std::string &op, TipoDado a, TipoDado b,
+                             int linha, std::vector<ErroAnalise> &erros)
+    {
+        if (a == TipoDado::DESCONHECIDO || b == TipoDado::DESCONHECIDO)
+            return TipoDado::BOOL;
+
+        bool ordenacao = (op == "<" || op == ">" || op == "<=" || op == ">=");
+        if (ordenacao && (!isNumerico(a) || !isNumerico(b)))
+        {
+            erroTipo(erros, linha,
+                     "operador relacional '" + op + "' exige operandos numericos, encontrado " +
+                         nomeTipoDado(a) + " e " + nomeTipoDado(b));
+            return TipoDado::BOOL;
+        }
+
+        if (a != b)
+        {
+            erroTipo(erros, linha,
+                     "operador relacional '" + op + "' nao permite comparar tipos diferentes: " +
+                         nomeTipoDado(a) + " com " + nomeTipoDado(b));
+        }
+        return TipoDado::BOOL;
+    }
+}
+
+TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroAnalise> &erros)
+{
+    if (!raiz)
+        return TipoDado::DESCONHECIDO;
+
+    switch (raiz->tipo)
+    {
+    case ASTNodeType::PROGRAMA:
+    case ASTNodeType::SEQUENCIA:
+        // Processa cada expressao na ordem do codigo-fonte 
+        // para que os STORE infiram o tipo das variaveis antes dos LOAD subsequentes
+        for (ASTNode *filho : raiz->filhos)
+            verificarTipos(filho, tabela, erros);
+        raiz->tipoDado = TipoDado::DESCONHECIDO;
+        return TipoDado::DESCONHECIDO;
+
+    case ASTNodeType::NUMERO_LITERAL:
+        // Literal real se contiver ponto decimal, se nao inteiro
+        raiz->tipoDado = (raiz->operando.find('.') != std::string::npos)
+                             ? TipoDado::REAL
+                             : TipoDado::INT;
+        return raiz->tipoDado;
+
+    case ASTNodeType::BOOL_LITERAL:
+        raiz->tipoDado = TipoDado::BOOL;
+        return TipoDado::BOOL;
+
+    case ASTNodeType::MEMORIA_LOAD:
+    {
+        // (MEM) o tipo vem da tabela de simbolos 
+        // ja preenchida pelo STORE
+        auto it = tabela.find(raiz->operando);
+        raiz->tipoDado = (it != tabela.end()) ? it->second.tipo : TipoDado::DESCONHECIDO;
+        return raiz->tipoDado;
+    }
+
+    case ASTNodeType::MEMORIA_STORE:
+    {
+        // (V MEM)
+        // infere/valida o tipo da variavel a partir do valor armazenado
+        TipoDado tipoValor = raiz->filhos.empty()
+                                 ? TipoDado::DESCONHECIDO
+                                 : verificarTipos(raiz->filhos[0], tabela, erros);
+
+        Simbolo &sim = tabela[raiz->operando];
+        if (sim.tipo == TipoDado::DESCONHECIDO)
+        {
+            sim.tipo = tipoValor; // primeira definicao fixa o tipo
+        }
+        else if (tipoValor != TipoDado::DESCONHECIDO && sim.tipo != tipoValor)
+        {
+            // Tipagem forte
+            // o tipo de uma variavel nao pode mudar apos a definicao.
+            erroTipo(erros, raiz->linha,
+                     "variavel '" + raiz->operando + "' definida como " + nomeTipoDado(sim.tipo) +
+                         " nao pode receber valor do tipo " + nomeTipoDado(tipoValor) +
+                         " (tipagem estatica e forte)");
+        }
+        raiz->tipoDado = sim.tipo;
+        return raiz->tipoDado;
+    }
+
+    case ASTNodeType::MEMORIA_RES:
+    {
+        // (N RES)
+        // N deve ser inteiro 
+        // o tipo do resultado e resolvido em runtime
+        if (!raiz->filhos.empty())
+        {
+            TipoDado tipoN = verificarTipos(raiz->filhos[0], tabela, erros);
+            if (tipoN != TipoDado::INT && tipoN != TipoDado::DESCONHECIDO)
+                erroTipo(erros, raiz->linha,
+                         "o indice N de (N RES) deve ser inteiro, encontrado " + nomeTipoDado(tipoN));
+        }
+        raiz->tipoDado = TipoDado::DESCONHECIDO;
+        return TipoDado::DESCONHECIDO;
+    }
+
+    case ASTNodeType::INSTRUCAO_VFP:
+    {
+        // Operador aritmetico binario: + - * | / % ^
+        TipoDado a = raiz->filhos.size() > 0 ? verificarTipos(raiz->filhos[0], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado b = raiz->filhos.size() > 1 ? verificarTipos(raiz->filhos[1], tabela, erros) : TipoDado::DESCONHECIDO;
+        raiz->tipoDado = tiparAritmetico(raiz->operando, a, b, raiz->linha, erros);
+        return raiz->tipoDado;
+    }
+
+    case ASTNodeType::INSTRUCAO_CMP:
+    {
+        // Operador relacional binario
+        TipoDado a = raiz->filhos.size() > 0 ? verificarTipos(raiz->filhos[0], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado b = raiz->filhos.size() > 1 ? verificarTipos(raiz->filhos[1], tabela, erros) : TipoDado::DESCONHECIDO;
+        raiz->tipoDado = tiparRelacional(raiz->operando, a, b, raiz->linha, erros);
+        return raiz->tipoDado;
+    }
+
+    case ASTNodeType::COMANDO_IFELSE:
+    {
+        // (cond then else IFELSE)
+        // condicao logica; ramos do mesmo tipo
+        TipoDado cond = raiz->filhos.size() > 0 ? verificarTipos(raiz->filhos[0], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado entao = raiz->filhos.size() > 1 ? verificarTipos(raiz->filhos[1], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado senao = raiz->filhos.size() > 2 ? verificarTipos(raiz->filhos[2], tabela, erros) : TipoDado::DESCONHECIDO;
+
+        if (cond != TipoDado::BOOL && cond != TipoDado::DESCONHECIDO)
+            erroTipo(erros, raiz->linha,
+                     "a condicao do IFELSE deve ser logica (BOOL), encontrado " + nomeTipoDado(cond));
+
+        // Tipo do IFELSE 
+        // tipo comum dos ramos
+        // com recuperacao via DESCONHECIDO
+        if (entao == TipoDado::DESCONHECIDO)
+            raiz->tipoDado = senao;
+        else if (senao == TipoDado::DESCONHECIDO)
+            raiz->tipoDado = entao;
+        else if (entao == senao)
+            raiz->tipoDado = entao;
+        else
+        {
+            erroTipo(erros, raiz->linha,
+                     "os ramos do IFELSE tem tipos diferentes: " + nomeTipoDado(entao) +
+                         " (entao) e " + nomeTipoDado(senao) + " (senao)");
+            raiz->tipoDado = TipoDado::DESCONHECIDO;
+        }
+        return raiz->tipoDado;
+    }
+
+    case ASTNodeType::COMANDO_WHILE:
+    {
+        // (cond corpo WHILE)
+        // condicao logica
+        TipoDado cond = raiz->filhos.size() > 0 ? verificarTipos(raiz->filhos[0], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado corpo = raiz->filhos.size() > 1 ? verificarTipos(raiz->filhos[1], tabela, erros) : TipoDado::DESCONHECIDO;
+
+        if (cond != TipoDado::BOOL && cond != TipoDado::DESCONHECIDO)
+            erroTipo(erros, raiz->linha,
+                     "a condicao do WHILE deve ser logica (BOOL), encontrado " + nomeTipoDado(cond));
+
+        raiz->tipoDado = corpo;
+        return raiz->tipoDado;
+    }
+
+    default:
+        raiz->tipoDado = TipoDado::DESCONHECIDO;
+        return TipoDado::DESCONHECIDO;
+    }
 }
