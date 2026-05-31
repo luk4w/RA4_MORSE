@@ -95,3 +95,15 @@ TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroA
  * @param arquivo Caminho do arquivo Markdown de saida
  */
 void exportarArvoreAtribuida(ASTNode *raiz, const std::string &arquivo);
+
+/**
+ * @brief Exporta o relatorio de erros lexicos, sintaticos e semanticos em Markdown
+ *
+ * Gerado em toda execucao
+ * Os erros sao agrupados e ordenados por linha.
+ *
+ * @param erros Vetor com todos os erros acumulados na analise passado por copia
+ * para ordenacao local sem afetar o chamador
+ * @param arquivo Caminho do arquivo Markdown de saida
+ */
+void exportarErros(std::vector<ErroAnalise> erros, const std::string &arquivo);

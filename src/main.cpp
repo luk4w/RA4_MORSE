@@ -238,6 +238,9 @@ int main(int argc, char *argv[])
     // Exporta a tabela ja com os tipos inferidos pela verificacao
     exportarTabelaSimbolos(tabelaSimbolos, "TABELA_SIMBOLOS.md");
 
+    // Relatorio de erros da ultima execucao
+    exportarErros(erros, "ERROS_SEMANTICOS.md");
+
     // Relatorio de erros
     if (!erros.empty())
     {

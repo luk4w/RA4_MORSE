@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 
 std::vector<std::string> removerComentarios(const std::vector<std::string> &linhas, std::vector<ErroAnalise> &erros)
 {
@@ -515,5 +516,50 @@ void exportarArvoreAtribuida(ASTNode *raiz, const std::string &arquivo)
     }
 
     escreverNoAtribuido(out, raiz, 0);
+    out.close();
+}
+
+// Relatorio de erros da ultima execucao
+void exportarErros(std::vector<ErroAnalise> erros, const std::string &arquivo)
+{
+    std::ofstream out(arquivo);
+    if (!out.is_open())
+        return;
+
+    // Ordena por linha preservando a ordem das fases dentro de uma mesma linha
+    std::stable_sort(erros.begin(), erros.end(),
+                     [](const ErroAnalise &a, const ErroAnalise &b)
+                     { return a.linha < b.linha; });
+
+    out << "# Relatorio de Erros Semanticos\n\n";
+    out << "Relatorio dos erros (lexicos, sintaticos e semanticos) acumulados na "
+           "ultima execucao do analisador. Gerado mesmo quando nao ha erros.\n\n";
+
+    if (erros.empty())
+    {
+        out << "**Nenhum erro encontrado.** A ultima execucao foi semanticamente "
+               "valida e o codigo Assembly foi gerado com sucesso.\n";
+        out.close();
+        return;
+    }
+
+    // Contagem por categoria
+    size_t nLexicos = 0, nSintaticos = 0, nSemanticos = 0;
+    for (const ErroAnalise &e : erros)
+    {
+        if (e.tipo == "LEXICO") nLexicos++;
+        else if (e.tipo == "SINTATICO") nSintaticos++;
+        else if (e.tipo == "SEMANTICO") nSemanticos++;
+    }
+
+    out << "**Total:** " << erros.size() << " erro(s) - "
+        << nLexicos << " lexico(s), " << nSintaticos << " sintatico(s), "
+        << nSemanticos << " semantico(s).\n\n";
+
+    out << "| Linha | Tipo | Mensagem |\n";
+    out << "|-------|------|----------|\n";
+    for (const ErroAnalise &e : erros)
+        out << "| " << e.linha << " | " << e.tipo << " | " << e.mensagem << " |\n";
+
     out.close();
 }
