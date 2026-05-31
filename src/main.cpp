@@ -27,10 +27,13 @@ int main(int argc, char *argv[])
 
     // imprimir a tabela LL1 no formato de matriz M[nao_terminal, terminal] = regra de prod
     cout << "--- TABELA DE PARSING LL(1) ---\n";
-    for (const auto& [nao_terminal, transicoes] : tabela_ll1) {
-        for (const auto& [terminal, regra] : transicoes) {
+    for (const auto &[nao_terminal, transicoes] : tabela_ll1)
+    {
+        for (const auto &[terminal, regra] : transicoes)
+        {
             cout << "M[" << nao_terminal << ", " << terminal << "] = { ";
-            for (const string& s : regra) cout << s << " ";
+            for (const string &s : regra)
+                cout << s << " ";
             cout << "}\n";
         }
     }
@@ -115,37 +118,39 @@ int main(int argc, char *argv[])
         for (const TokenData &tk : vtokens)
             if (tk.tipo == T_PALAVRA_RES)
             {
-                if (tk.valor == "START") countStart++;
-                if (tk.valor == "END")   countEnd++;
+                if (tk.valor == "START")
+                    countStart++;
+                if (tk.valor == "END")
+                    countEnd++;
             }
 
         // (START) gera os tokens PARENTESE_ESQ, START, PARENTESE_DIR.
         // Logo, o primeiro token e PARENTESE_ESQ e o segundo deve ser START.
         bool comecaStart = (vtokens.size() >= 2 &&
-                               vtokens[1].tipo == T_PALAVRA_RES &&
-                               vtokens[1].valor == "START");
+                            vtokens[1].tipo == T_PALAVRA_RES &&
+                            vtokens[1].valor == "START");
 
         // (END) gera PARENTESE_ESQ, END, PARENTESE_DIR.
         // Logo, o penultimo token deve ser END.
         bool terminaEnd = (vtokens.size() >= 2 &&
-                              vtokens[vtokens.size() - 2].tipo == T_PALAVRA_RES &&
-                              vtokens[vtokens.size() - 2].valor == "END");
+                           vtokens[vtokens.size() - 2].tipo == T_PALAVRA_RES &&
+                           vtokens[vtokens.size() - 2].valor == "END");
 
         if (!comecaStart)
             erros.push_back(ErroAnalise{vtokens.front().linha, "SINTATICO",
-                "programa deve comecar com a linha (START)"});
+                                        "programa deve comecar com a linha (START)"});
 
         if (!terminaEnd)
             erros.push_back(ErroAnalise{vtokens.back().linha, "SINTATICO",
-                "programa deve terminar com a linha (END)"});
+                                        "programa deve terminar com a linha (END)"});
 
         if (countStart > 1)
             erros.push_back(ErroAnalise{vtokens.front().linha, "SINTATICO",
-                "(START) deve aparecer exatamente uma vez, apenas na primeira linha"});
+                                        "(START) deve aparecer exatamente uma vez, apenas na primeira linha"});
 
         if (countEnd > 1)
             erros.push_back(ErroAnalise{vtokens.back().linha, "SINTATICO",
-                "(END) deve aparecer exatamente uma vez, apenas na ultima linha"});
+                                        "(END) deve aparecer exatamente uma vez, apenas na ultima linha"});
     }
 
     // Cada linha entre (START) e (END) e uma expressao independente
@@ -156,7 +161,7 @@ int main(int argc, char *argv[])
     // As subarvores validas sao reunidas numa unica AST
     // Os erros de todas as fases sao acumulados
     // o unico gate fica antes do assembly e nada e gerado se houver qualquer erro
-    ASTNode *arvore = new ASTNode(ASTNodeType::PROGRAMA, "programa");
+    ASTNode *arvore = new ASTNode(ASTNodeType::PROGRAMA, 0, "programa");
     {
         // Localizar os tokens de (START) e (END) para reaproveitar no envoltorio
         TokenData tParEsq{T_PAREN_ESQ, "(", 0};
@@ -222,21 +227,32 @@ int main(int argc, char *argv[])
         }
     }
 
-    
+    // ANALISE SEMANTICA
+    TabelaSimbolos tabelaSimbolos;
+    construirTabelaSimbolos(arvore, tabelaSimbolos, erros);
+    exportarTabelaSimbolos(tabelaSimbolos, "TABELA_SIMBOLOS.md");
 
     // Relatorio de erros
     if (!erros.empty())
     {
         // Agrupa os erros por linha
-        // lexicos e sintaticos lado a lado
+        // lexicos, sintaticos e semanticos lado a lado
         // stable_sort preserva a ordem das fases dentro de uma mesma linha
         std::stable_sort(erros.begin(), erros.end(),
-            [](const ErroAnalise &a, const ErroAnalise &b) { return a.linha < b.linha; });
+                         [](const ErroAnalise &a, const ErroAnalise &b)
+                         { return a.linha < b.linha; });
 
         // Conta os erros por categoria
-        size_t nLexicos = 0, nSintaticos = 0;
+        size_t nLexicos = 0, nSintaticos = 0, nSemanticos = 0;
         for (const ErroAnalise &erro : erros)
-            (erro.tipo == "LEXICO" ? nLexicos : nSintaticos)++;
+        {
+            if (erro.tipo == "LEXICO")
+                nLexicos++;
+            else if (erro.tipo == "SINTATICO")
+                nSintaticos++;
+            else if (erro.tipo == "SEMANTICO")
+                nSemanticos++;
+        }
 
         std::string resumo;
         if (nLexicos > 0)
@@ -244,6 +260,9 @@ int main(int argc, char *argv[])
         if (nSintaticos > 0)
             resumo += (resumo.empty() ? "" : ", ") +
                       std::to_string(nSintaticos) + " sintatico" + (nSintaticos == 1 ? "" : "s");
+        if (nSemanticos > 0)
+            resumo += (resumo.empty() ? "" : ", ") +
+                      std::to_string(nSemanticos) + " semantico" + (nSemanticos == 1 ? "" : "s");
 
         cerr << "\n";
         cerr << "============================================================\n";

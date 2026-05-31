@@ -7,6 +7,26 @@
 #include <vector>
 #include "tokens.hpp"
 
+#include "ast.hpp"
+#include <map>
+
+/**
+ * @brief Estrutura para representar um simbolo/variavel na tabela de simbolos.
+ */
+struct Simbolo
+{
+    std::string nome;
+    TipoDado tipo;
+    int linhaDefinicao;
+    std::vector<int> linhasUso;
+    bool inicializada = false;
+};
+
+/**
+ * @brief Tabela de simbolos para mapear o nome da variavel para os dados
+ */
+using TabelaSimbolos = std::map<std::string, Simbolo>; // apelido para std::map<std::string, Simbolo>;
+
 /**
  * @brief Remove comentarios *{ ... }* das linhas e preservar as posicoes
  * para nao mudar a numero da linha que acontece o erro
@@ -24,3 +44,16 @@ std::vector<std::string> removerComentarios(const std::vector<std::string> &linh
  * @param erros struct para acumular todos os erros
  */
 std::vector<std::string> prepararEntradaSemantica(const std::string &arquivo, std::vector<ErroAnalise> &erros);
+
+/**
+ * @brief Percorre a AST para construir a Tabela de simbolos e validar declaracoes
+ * @param raiz Ponteiro para a raiz da AST
+ * @param tabela Tabela de simbolos a ser preenchida
+ * @param erros Vetor para acumular erros semânticos de declaração/uso
+ */
+void construirTabelaSimbolos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroAnalise> &erros);
+
+/**
+ * @brief Exporta a tabela de simbolos para um arquivo Markdown
+ */
+void exportarTabelaSimbolos(const TabelaSimbolos &tabela, const std::string &arquivo);

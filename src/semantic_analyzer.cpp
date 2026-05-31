@@ -6,6 +6,8 @@
 #include "cli_controller.hpp"
 #include "fsm_scanner.hpp"
 #include <stdexcept>
+#include <fstream>
+#include <iomanip>
 
 std::vector<std::string> removerComentarios(const std::vector<std::string> &linhas, std::vector<ErroAnalise> &erros)
 {
@@ -80,7 +82,7 @@ std::vector<std::string> removerComentarios(const std::vector<std::string> &linh
 std::vector<std::string> prepararEntradaSemantica(const std::string &arquivo, std::vector<ErroAnalise> &erros)
 {
     std::vector<std::string> linhas;
-    lerArquivo(arquivo, linhas); // lança exceção se o arquivo não existir ou estiver vazio
+    lerArquivo(arquivo, linhas); // lança exceção se o arquivo nao existir ou estiver vazio
 
     // Remove comentarios *{ }* antes de tokenizar
     std::vector<std::string> linhas_limpas = removerComentarios(linhas, erros);
@@ -105,4 +107,92 @@ std::vector<std::string> prepararEntradaSemantica(const std::string &arquivo, st
     }
 
     return tokens;
+}
+
+void construirTabelaSimbolos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroAnalise> &erros)
+{
+    if (!raiz)
+        return;
+
+    // Se for um STORE (V MEM)
+    if (raiz->tipo == ASTNodeType::MEMORIA_STORE)
+    {
+        std::string nome = raiz->operando;
+        if (tabela.find(nome) == tabela.end())
+        {
+            // Primeira vez que o comp viu a variavel define
+            tabela[nome] = {nome, TipoDado::DESCONHECIDO, raiz->linha, {}, true};
+        }
+        else
+        {
+            // reatribuicao -> uso/escrita
+            tabela[nome].inicializada = true;
+            tabela[nome].linhasUso.push_back(raiz->linha);
+        }
+    }
+    // Se for um LOAD (MEM)
+    else if (raiz->tipo == ASTNodeType::MEMORIA_LOAD)
+    {
+        std::string nome = raiz->operando;
+        // rerificar se é uma palavra reservada
+        if (nome != "TRUE" && nome != "FALSE")
+        {
+            if (tabela.find(nome) == tabela.end() || !tabela[nome].inicializada)
+            {
+                // nao devem entrar na tabela como variaveis
+                erros.push_back(ErroAnalise{raiz->linha, "SEMANTICO",
+                                            "Variavel '" + nome + "' usada sem ser definida previamente com (V " + nome + ")"});
+                // Registra mesmo com erro para evitar erros duplicados
+                if (tabela.find(nome) == tabela.end())
+                    tabela[nome] = {nome, TipoDado::DESCONHECIDO, -1, {raiz->linha}, false};
+            }
+            else
+            {
+                tabela[nome].linhasUso.push_back(raiz->linha);
+            }
+        }
+    }
+
+    // recursao nos filhos para garantir que toda a arvore seja processada
+    for (ASTNode *filho : raiz->filhos)
+    {
+        construirTabelaSimbolos(filho, tabela, erros);
+    }
+}
+
+void exportarTabelaSimbolos(const TabelaSimbolos &tabela, const std::string &arquivo)
+{
+    std::ofstream out(arquivo);
+    if (!out.is_open())
+        return;
+
+    out << "# Tabela de Símbolos\n\n";
+    out << "| Variável | Tipo | Linha Definição | Linhas de Uso |\n";
+    out << "|----------|------|-----------------|---------------|\n";
+
+    for (const auto &[nome, sim] : tabela)
+    {
+        std::string tipoStr;
+        switch (sim.tipo)
+        {
+        case TipoDado::INT: tipoStr = "INT"; break;
+        case TipoDado::REAL: tipoStr = "REAL"; break;
+        case TipoDado::BOOL: tipoStr = "BOOL"; break;
+        default: tipoStr = "DESCONHECIDO"; break;
+        }
+
+        std::string linhasUso;
+        for (size_t i = 0; i < sim.linhasUso.size(); ++i)
+        {
+            linhasUso += std::to_string(sim.linhasUso[i]);
+            if (i < sim.linhasUso.size() - 1)
+                linhasUso += ", ";
+        }
+
+        out << "| " << nome << " | " << tipoStr << " | "
+            << (sim.linhaDefinicao != -1 ? std::to_string(sim.linhaDefinicao) : "N/A")
+            << " | " << (linhasUso.empty() ? "-" : linhasUso) << " |\n";
+    }
+
+    out.close();
 }
