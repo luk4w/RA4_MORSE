@@ -44,6 +44,8 @@ inline const std::unordered_set<std::string> PALAVRAS_RESERVADAS = {
     "END",
     "IFELSE",
     "WHILE",
+    "TRUE",
+    "FALSE",
 };
 
 inline bool isPalavraReservada(const std::string &s)
