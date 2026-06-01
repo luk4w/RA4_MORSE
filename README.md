@@ -61,7 +61,7 @@ A partir do diretório onde está o executável:
 Exemplos com os arquivos de teste fornecidos na pasta `tests/`:
 
 ```powershell
-# Programa valido (gera ast_saida.json e saida.s)
+# Programa valido (gera ast_atribuida.json e saida.s)
 .\AnalisadorSemantico.exe ..\..\tests\teste1.txt
 
 # Programa com erros (exibe o relatório de erros e NÃO gera assembly)
@@ -70,12 +70,13 @@ Exemplos com os arquivos de teste fornecidos na pasta `tests/`:
 
 > Nota: ajustar o caminho relativo (`..\..\tests\`).
 
-**Saídas geradas** no diretório de execução (o `tokens.txt` sai sempre; o `ast_saida.json` e o `saida.s` apenas quando o programa não contém erros):
+**Saídas geradas** no diretório de execução (o `tokens.txt` sai sempre; o `ast_inicial.json`, o `ast_atribuida.json` e o `saida.s` apenas quando o programa não contém erros):
 
 | Arquivo | Descrição |
 | :--- | :--- |
 | `tokens.txt` | Vetor de tokens da última execução (saída do analisador léxico). |
-| `ast_saida.json` | Árvore sintática **atribuída** (AST com `tipoDado` em cada nó) serializada em JSON. |
+| `ast_inicial.json` | Árvore sintática **inicial** (saída da Fase 2), capturada **antes** da análise semântica - todos os nós com `tipoDado` `DESCONHECIDO`. Serve de "antes" para evidenciar a aumentação. |
+| `ast_atribuida.json` | Árvore sintática **atribuída** (AST com `tipoDado` em cada nó) serializada em JSON. |
 | `saida.s` | Código Assembly ARMv7 gerado a partir da AST. O código gerado destina-se ao processador **ARMv7 (v16.1)**, simulado no [Cpulator](https://cpulator.01xz.net/?sys=arm-de1soc). |
 
 Se o programa **contém erros**, é exibido um **relatório de erros** (com tipo `LEXICO`/`SINTATICO`/`SEMANTICO` e número da linha) e nenhum código Assembly é gerado - o processo encerra com código de saída `1`.
@@ -314,8 +315,8 @@ gerada com **`tests/teste1.txt`**:
 | Arquivo | Descrição |
 | :--- | :--- |
 | [`tokens.txt`](tokens.txt) | Vetor de tokens (saída do analisador léxico). |
-| [`ast_saida.json`](ast_saida.json) | Árvore sintática **atribuída** (com `tipoDado` em cada nó), serializada em JSON. |
-| [`ARVORE_ATRIBUIDA.md`](ARVORE_ATRIBUIDA.md) | Árvore atribuída em Markdown (categoria semântica + tipo de cada nó). |
+| [`ast_inicial.json`](ast_inicial.json) | Árvore sintática **inicial** (Fase 2), antes da análise semântica - todos os nós `DESCONHECIDO`. Contraste com `ast_atribuida.json` evidencia a aumentação. |
+| [`ast_atribuida.json`](ast_atribuida.json) | Árvore sintática **atribuída** (com `tipoDado` e `linha` em cada nó), serializada em JSON. |
 | [`TABELA_SIMBOLOS.md`](TABELA_SIMBOLOS.md) | Tabela de símbolos com tipos inferidos, linha de definição e usos. |
 | [`saida.s`](saida.s) | Código Assembly ARMv7 para o simulador CPUlator-ARMv7 DEC1-SOC (v16.1). |
 | [`ERROS_SEMANTICOS.md`](ERROS_SEMANTICOS.md) | Relatório de erros da última execução (vazio quando o programa é válido). |
@@ -323,9 +324,9 @@ gerada com **`tests/teste1.txt`**:
 > O Assembly é gerado **somente** quando não há erros léxicos/sintáticos/semânticos.
 > A AST inicial é construída por `gerarArvore()` (`include/parser.hpp`); a árvore
 > sintática **atribuída** (aumentada) é produzida por `gerarArvoreAtribuida()`
-> (`include/semantic_analyzer.hpp`), que anota o tipo de cada nó, e exportada por
-> `exportarAST()` (`include/ast_exporter.hpp`) e `exportarArvoreAtribuida()`; o
-> Assembly por `gerarAssembly()` (`include/armv7_generator.hpp`).
+> (`include/semantic_analyzer.hpp`), que anota o tipo de cada nó, e serializada em
+> JSON por `exportarAST()` (`include/ast_exporter.hpp`); o Assembly por
+> `gerarAssembly()` (`include/armv7_generator.hpp`).
 
 ## Como Ler a Tabela de Símbolos e a Árvore Atribuída
 
@@ -340,16 +341,20 @@ A tabela registra cada variável (memória) declarada no programa, uma por linha
 
 A função `construirTabelaSimbolos` cria a tabela e `verificarTipos` preenche os tipos. Ela é a base para detectar uso antes da definição e reatribuição com tipo incompatível.
 
-### Árvore atribuída (`ARVORE_ATRIBUIDA.md` e `ast_saida.json`)
+### Árvore atribuída (`ast_atribuida.json`)
 
-A árvore sintática atribuída é a AST anotada com a informação semântica de cada nó. Cada nó mostra:
+A árvore sintática atribuída é a AST anotada com a informação semântica de cada nó, serializada em JSON. Cada nó traz os campos:
 
-- a **categoria semântica** (ex.: `Operador aritmetico`, `Decisao (IFELSE)`, `Uso de variavel (LOAD)`);
-- o **operando/valor** associado, quando há (ex.: o operador `+` ou o nome da variável);
-- o **tipo inferido** (`_INT_`, `_REAL_`, `_BOOL_` ou `_DESCONHECIDO_`), resultado de `verificarTipos`;
-- a **linha** do código-fonte de origem.
+- **`tipo`** - a categoria sintática do nó (ex.: `INSTRUCAO_VFP`, `COMANDO_IFELSE`, `MEMORIA_LOAD`, `BOOL_LITERAL`);
+- **`tipoDado`** - o **tipo inferido** (`INT`, `REAL`, `BOOL` ou `DESCONHECIDO`), resultado de `verificarTipos`;
+- **`linha`** - a linha do código-fonte de origem;
+- **`operando`** - o valor/nome associado, quando há (ex.: o operador `+` ou o nome da variável, que referencia a tabela de símbolos);
+- **`opcode`** - a instrução-alvo usada na geração de Assembly (ex.: `VADD.F64`);
+- **`filhos`** - os nós aninhados (a estrutura reflete o aninhamento das expressões RPN).
 
-A indentação reflete o aninhamento das expressões RPN. O `ARVORE_ATRIBUIDA.md` traz a versão legível em Markdown; o `ast_saida.json` traz a mesma árvore serializada, com o campo `tipoDado` em cada nó. É essa árvore que justifica a geração do Assembly.
+É essa árvore que justifica a geração do Assembly.
+
+Para evidenciar a **aumentação semântica**, o programa também emite `ast_inicial.json`: a mesma árvore **antes** da fase semântica, com todos os nós em `tipoDado` `DESCONHECIDO`. Comparar os dois arquivos mostra a inferência de tipos em ação - cada nó tipável sai de `DESCONHECIDO` para `INT`, `REAL` ou `BOOL`.
 
 ## Documentação (Artefatos de Entrega)
 
@@ -358,7 +363,7 @@ A indentação reflete o aninhamento das expressões RPN. O `ARVORE_ATRIBUIDA.md
 | [`GRAMATICA.md`](GRAMATICA.md) | Gramática atribuída em EBNF, FIRST/FOLLOW e tabela LL(1). |
 | [`REGRAS_TIPOS.md`](REGRAS_TIPOS.md) | Sistema de regras de tipos em cálculo de sequentes. |
 | [`TABELA_SIMBOLOS.md`](TABELA_SIMBOLOS.md) | Tabela de símbolos da última execução. |
-| [`ARVORE_ATRIBUIDA.md`](ARVORE_ATRIBUIDA.md) | Árvore sintática atribuída da última execução. |
+| [`ast_atribuida.json`](ast_atribuida.json) | Árvore sintática atribuída da última execução (JSON, com `tipoDado` e `linha` por nó). |
 | [`ERROS_SEMANTICOS.md`](ERROS_SEMANTICOS.md) | Relatório de erros da última execução (gerado mesmo se vazio). |
 
 Os testes unitários por módulo (léxico, parser, tabela de símbolos e verificação
