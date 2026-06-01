@@ -119,7 +119,7 @@ O laço avalia a condição antes de cada iteração. Quando a condição result
 A linguagem suporta operações de estado por meio da palavra reservada `RES` e de identificadores arbitrários para variáveis (`MEM`). A sintaxe segue a notação polonesa reversa:
 
 #### Leitura de Histórico `RES`: `(N RES)`
-Retorna o valor computado `N` expressões atrás no histórico da FPU. O índice `N` deve ser um inteiro não negativo, onde `0` representa o último resultado avaliado. Exemplo:
+Retorna o valor computado `N` expressões atrás no histórico da FPU. O índice `N` deve ser um inteiro não negativo, onde `0` representa o último resultado avaliado. O **tipo** de `(N RES)` é inferido estaticamente como o tipo desse resultado, então recuperar (por exemplo) um `bool` e usá-lo num operador aritmético é erro semântico. Exemplo:
 ```
 (0 RES)
 ```
@@ -158,7 +158,7 @@ definição (não pode mudar depois). **Não há coerção implícita** entre `i
 | :--- | :--- | :--- |
 | `+` `-` `*` | mesmo tipo numérico | mesmo tipo |
 | `\|` (divisão real) | mesmo tipo numérico | `real` |
-| `^` (potência) | mesmo tipo numérico | mesmo tipo |
+| `^` (potência) | base `int`/`real`; **expoente `int`** | tipo da base (`real^int → real`) |
 | `/` `%` (divisão inteira, resto) | **apenas `int`** | `int` |
 | `< > <= >=` | mesmo tipo **numérico** | `bool` |
 | `== !=` | mesmo tipo (`int`/`real`/`bool`) | `bool` |
