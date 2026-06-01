@@ -7,6 +7,13 @@
 #include <map>
 #include <string>
 
+// Converter um literal logico para a constante double  TRUE 1.0 e FALSE 0.0
+// Usado tanto na coleta da secao .data quanto na emissao
+static std::string valorBoolLiteral(const ASTNode *node)
+{
+    return (node->operando == "TRUE") ? "1.0" : "0.0";
+}
+
 // Como a AST foi projetada com opcodes ARMv7 VFP embutidos nos nós (VADD.F64, VLDR.F64)
 // facilita a vida, ou seja
 // primeiro emite o codigo dos filhos (deixando operandos na pilha FPU)
@@ -29,6 +36,14 @@ static void coletarLiteraisVariaveis(
         if (literais.find(node->operando) == literais.end())
             literais[node->operando] = "LIT_" + std::to_string(contagemLiterais++);
         break;
+    case ASTNodeType::BOOL_LITERAL:
+    {
+        // Literais logicos viram constantes double na secao .data.
+        std::string v = valorBoolLiteral(node);
+        if (literais.find(v) == literais.end())
+            literais[v] = "LIT_" + std::to_string(contagemLiterais++);
+        break;
+    }
     case ASTNodeType::MEMORIA_LOAD:
     case ASTNodeType::MEMORIA_STORE:
         if (variaveis.find(node->operando) == variaveis.end())
@@ -50,6 +65,7 @@ static bool produzValor(ASTNodeType tipo)
     switch (tipo)
     {
     case ASTNodeType::NUMERO_LITERAL:
+    case ASTNodeType::BOOL_LITERAL:
     case ASTNodeType::MEMORIA_LOAD:
     case ASTNodeType::MEMORIA_RES:
     case ASTNodeType::INSTRUCAO_VFP:
@@ -74,6 +90,48 @@ static std::string mapearBranchInverso(std::string op)
     if (op == ">=")
         return "BLT"; // Salta se menor que
     return "B";       // Fallback de segurança
+}
+
+// Declaracao adiantada
+// emitirNo e emitirCondicaoSalto se chamam mutuamente
+// um comando de controle emite a condicao, que por sua vez pode ser qualquer no
+static void emitirNo(
+    ASTNode *node,
+    std::stringstream &ss,
+    const std::map<std::string, std::string> &literais,
+    const std::map<std::string, std::string> &variaveis,
+    int &contadorLabel);
+
+// Emite a condicao de um IFELSE/WHILE e salta pro labelFalso quando ela e falsa
+// dois casos
+// relacional (INSTRUCAO_CMP) o proprio no faz VCMP + VMRS e a gente usa o branch inverso do operador
+// booleana qualquer (variavel, literal TRUE/FALSE) o no deixa 1.0/0.0 na pilha, testa com zero e salta se for 0
+static void emitirCondicaoSalto(
+    ASTNode *cond,
+    const std::string &labelFalso,
+    std::stringstream &ss,
+    const std::map<std::string, std::string> &literais,
+    const std::map<std::string, std::string> &variaveis,
+    int &contadorLabel)
+{
+    if (cond && cond->tipo == ASTNodeType::INSTRUCAO_CMP)
+    {
+        // relacional, o emitirNo(cond) ja gera o VCMP + VMRS
+        emitirNo(cond, ss, literais, variaveis, contadorLabel);
+        ss << "    " << mapearBranchInverso(cond->opcode)
+           << " " << labelFalso << "        @ Salta se a condicao for FALSA\n";
+    }
+    else
+    {
+        // booleana nao-relacional (variavel, literal)
+        // o no empilha 1.0 (true) ou 0.0 (false) e a gente testa contra zero
+        emitirNo(cond, ss, literais, variaveis, contadorLabel);
+        ss << "    @ Condicao booleana nao-relacional: testa se e FALSA (== 0.0)\n";
+        ss << "    VPOP.F64 {D0}           @ Desempilha o valor logico\n";
+        ss << "    VCMP.F64 D0, #0.0       @ Compara com zero (false)\n";
+        ss << "    VMRS APSR_nzcv, FPSCR   @ Transfere Flags da FPU para o processador\n";
+        ss << "    BEQ " << labelFalso << "        @ Salta se a condicao for FALSA (== 0)\n";
+    }
 }
 
 // Walker recursivo pos-ordem: emite o Assembly para o subarvore raiz em no
@@ -116,6 +174,18 @@ static void emitirNo(
         ss << "    VLDR.F64 D0, [R0]\n";
         ss << "    VPUSH.F64 {D0}\n\n";
         break;
+
+    case ASTNodeType::BOOL_LITERAL:
+    {
+        // Folha logica
+        // empilha TRUE ou FALSE como constante double
+        std::string v = valorBoolLiteral(node);
+        ss << "    @ Empilha Literal Logico: " << node->operando << " (" << v << ")\n";
+        ss << "    LDR R0, =" << literais.at(v) << "\n";
+        ss << "    VLDR.F64 D0, [R0]\n";
+        ss << "    VPUSH.F64 {D0}\n\n";
+        break;
+    }
 
     case ASTNodeType::MEMORIA_LOAD:
         // Folha: carrega o valor da variavel e empilha.
@@ -254,16 +324,13 @@ static void emitirNo(
     case ASTNodeType::COMANDO_IFELSE:
     {
         int id = contadorLabel++;
-        std::string opRelacional = node->filhos[0]->opcode;
-        std::string branchSair = mapearBranchInverso(opRelacional);
 
-        // 1. Emite a condição e seta os flags (VCMP + VMRS)
-        emitirNo(node->filhos[0], ss, literais, variaveis, contadorLabel);
+        // 1. Emite a condicao e salta para o ELSE se ela for FALSA
+        //    Trata tanto condicao relacional quanto booleana generica
+        emitirCondicaoSalto(node->filhos[0], "else_label_" + std::to_string(id),
+                            ss, literais, variaveis, contadorLabel);
 
-        // 2. Salta para o ELSE se a condição for FALSA
-        ss << "    " << branchSair << " else_label_" << id << "\n";
-
-        // 3. Bloco THEN
+        // 2. Bloco THEN
         emitirNo(node->filhos[1], ss, literais, variaveis, contadorLabel);
         ss << "    B end_if_" << id << "\n";
 
@@ -277,21 +344,18 @@ static void emitirNo(
     case ASTNodeType::COMANDO_WHILE:
     {
         int id = contadorLabel++;
-        std::string opRelacional = node->filhos[0]->opcode;
-        std::string branchSair = mapearBranchInverso(opRelacional);
 
         ss << "while_start_" << id << ":\n";
 
-        // 1. Emite a condição e seta os flags
-        emitirNo(node->filhos[0], ss, literais, variaveis, contadorLabel);
+        // 1. Emite a condicao e salta para o FIM se ela for FALSA
+        //    Trata tanto condicao relacional quanto booleana generica
+        emitirCondicaoSalto(node->filhos[0], "while_end_" + std::to_string(id),
+                            ss, literais, variaveis, contadorLabel);
 
-        // 2. Salta para o FIM se a condição for FALSA
-        ss << "    " << branchSair << " while_end_" << id << "\n";
-
-        // 3. Corpo do laço
+        // 2. Corpo do laço
         emitirNo(node->filhos[1], ss, literais, variaveis, contadorLabel);
 
-        // 4. Retorno ao início
+        // 3. Retorno ao início
         ss << "    B while_start_" << id << "\n";
         ss << "while_end_" << id << ":\n\n";
         break;
