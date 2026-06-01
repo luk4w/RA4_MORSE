@@ -119,7 +119,7 @@ Esses operadores são **exclusivos** de valores inteiros:
 ```math
 \frac{\Gamma \vdash a : int \quad \Gamma \vdash b : int}{\Gamma \vdash (a \ b \ op) : int} \quad (T\text{-}DivInt)
 ```
-> Onde $op \in \{/, \%\}$
+> Onde $op \in \{ /, \text{\%} \}$
 
 O uso de `real` ou `bool` com esses operadores gera **erro semântico**.
 
