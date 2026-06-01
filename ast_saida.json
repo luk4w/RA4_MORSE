@@ -217,6 +217,36 @@
       ]
     },
     {
+      "tipo": "MEMORIA_STORE",
+      "tipoDado": "REAL",
+      "operando": "TAXA",
+      "opcode": "VSTR.F64",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "REAL",
+          "operando": "3.5",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "MEMORIA_STORE",
+      "tipoDado": "BOOL",
+      "operando": "ATIVO",
+      "opcode": "VSTR.F64",
+      "filhos": [
+        {
+          "tipo": "UNKNOWN",
+          "tipoDado": "BOOL",
+          "operando": "TRUE",
+          "opcode": "TRUE",
+          "filhos": []
+        }
+      ]
+    },
+    {
       "tipo": "INSTRUCAO_VFP",
       "tipoDado": "INT",
       "operando": "+",
@@ -243,6 +273,50 @@
               "filhos": []
             }
           ]
+        }
+      ]
+    },
+    {
+      "tipo": "INSTRUCAO_VFP",
+      "tipoDado": "REAL",
+      "operando": "*",
+      "opcode": "VMUL.F64",
+      "filhos": [
+        {
+          "tipo": "MEMORIA_LOAD",
+          "tipoDado": "REAL",
+          "operando": "TAXA",
+          "opcode": "VLDR.F64",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "REAL",
+          "operando": "2.0",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "INSTRUCAO_CMP",
+      "tipoDado": "BOOL",
+      "operando": "!=",
+      "opcode": "!=",
+      "filhos": [
+        {
+          "tipo": "MEMORIA_LOAD",
+          "tipoDado": "BOOL",
+          "operando": "ATIVO",
+          "opcode": "VLDR.F64",
+          "filhos": []
+        },
+        {
+          "tipo": "UNKNOWN",
+          "tipoDado": "BOOL",
+          "operando": "FALSE",
+          "opcode": "FALSE",
+          "filhos": []
         }
       ]
     },

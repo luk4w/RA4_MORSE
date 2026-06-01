@@ -2,5 +2,7 @@
 
 | Variável | Tipo | Linha Definição | Linhas de Uso |
 |----------|------|-----------------|---------------|
-| CONTADOR | INT | 12 | 13, 14, 15, 15, 15 |
-| FINAL | INT | 17 | 18 |
+| ATIVO | BOOL | 14 | 17 |
+| CONTADOR | INT | 12 | 15, 18, 19, 19, 19 |
+| FINAL | INT | 21 | 22 |
+| TAXA | REAL | 13 | 16 |

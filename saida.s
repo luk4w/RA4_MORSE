@@ -4,26 +4,28 @@
     STACK_RES: .space 8000      @ Pilha para guardar os 1000 ultimos resultados
     STACK_RES_TOP:              @ Topo da pilha
     LIT_ONE_POW: .double 1.0    @ Constante 1 para o acumulador da potenciacao
-    LIT_16: .double 0.0
-    LIT_14: .double 1
-    LIT_15: .double 1.0
-    LIT_11: .double 100
+    LIT_12: .double 0.0
+    LIT_16: .double 1
+    LIT_11: .double 1.0
+    LIT_13: .double 100
     LIT_6: .double 2
     LIT_8: .double 2.0
     LIT_2: .double 20
-    LIT_12: .double 200
+    LIT_14: .double 200
     LIT_17: .double 3
     LIT_7: .double 3.5
     LIT_5: .double 4
     LIT_1: .double 5
     LIT_10: .double 50
     LIT_3: .double 6
-    LIT_13: .double 60
+    LIT_15: .double 60
     LIT_4: .double 7
     LIT_0: .double 8
     LIT_9: .double 9.0
+    VAR_ATIVO: .double 0.0
     VAR_CONTADOR: .double 0.0
     VAR_FINAL: .double 0.0
+    VAR_TAXA: .double 0.0
 
     .text
     .global _start
@@ -251,6 +253,26 @@ pow_end_0:
     LDR R0, =VAR_CONTADOR
     VSTR.F64 D0, [R0]
 
+    @ Empilha Constante: 3.5
+    LDR R0, =LIT_7
+    VLDR.F64 D0, [R0]
+    VPUSH.F64 {D0}
+
+    @ Grava resultado na variavel TAXA
+    VPOP.F64 {D0}
+    LDR R0, =VAR_TAXA
+    VSTR.F64 D0, [R0]
+
+    @ Empilha Literal Logico: TRUE (1.0)
+    LDR R0, =LIT_11
+    VLDR.F64 D0, [R0]
+    VPUSH.F64 {D0}
+
+    @ Grava resultado na variavel ATIVO
+    VPOP.F64 {D0}
+    LDR R0, =VAR_ATIVO
+    VSTR.F64 D0, [R0]
+
     @ LOAD: Le a variavel CONTADOR da memoria e empilha
     LDR R0, =VAR_CONTADOR
     VLDR.F64 D0, [R0]
@@ -281,6 +303,43 @@ pow_end_0:
     SUB R10, R10, #8        @ Avanca o ponteiro da pilha de historico
     VSTR.F64 D0, [R10]      @ Grava na RAM
 
+    @ LOAD: Le a variavel TAXA da memoria e empilha
+    LDR R0, =VAR_TAXA
+    VLDR.F64 D0, [R0]
+    VPUSH.F64 {D0}
+
+    @ Empilha Constante: 2.0
+    LDR R0, =LIT_8
+    VLDR.F64 D0, [R0]
+    VPUSH.F64 {D0}
+
+    @ Multiplicacao
+    VPOP.F64 {D1}           @ POP B
+    VPOP.F64 {D0}           @ POP A
+    VMUL.F64 D2, D0, D1     @ D2 = A * B
+    VPUSH.F64 {D2}          @ PUSH
+
+    @ salva o resultado no historico de memoria
+    VPOP.F64 {D0}           @ POP resultado final da FPU
+    SUB R10, R10, #8        @ Avanca o ponteiro da pilha de historico
+    VSTR.F64 D0, [R10]      @ Grava na RAM
+
+    @ LOAD: Le a variavel ATIVO da memoria e empilha
+    LDR R0, =VAR_ATIVO
+    VLDR.F64 D0, [R0]
+    VPUSH.F64 {D0}
+
+    @ Empilha Literal Logico: FALSE (0.0)
+    LDR R0, =LIT_12
+    VLDR.F64 D0, [R0]
+    VPUSH.F64 {D0}
+
+    @ Comparacao FPU
+    VPOP.F64 {D1}           @ Operando B
+    VPOP.F64 {D0}           @ Operando A
+    VCMP.F64 D0, D1         @ Compara A com B
+    VMRS APSR_nzcv, FPSCR   @ Transfere Flags da FPU para o processador
+
     @ LOAD: Le a variavel CONTADOR da memoria e empilha
     LDR R0, =VAR_CONTADOR
     VLDR.F64 D0, [R0]
@@ -299,14 +358,14 @@ pow_end_0:
 
     BLT else_label_1        @ Salta se a condicao for FALSA
     @ Empilha Constante: 100
-    LDR R0, =LIT_11
+    LDR R0, =LIT_13
     VLDR.F64 D0, [R0]
     VPUSH.F64 {D0}
 
     B end_if_1
 else_label_1:
     @ Empilha Constante: 200
-    LDR R0, =LIT_12
+    LDR R0, =LIT_14
     VLDR.F64 D0, [R0]
     VPUSH.F64 {D0}
 
@@ -319,7 +378,7 @@ while_start_2:
     VPUSH.F64 {D0}
 
     @ Empilha Constante: 60
-    LDR R0, =LIT_13
+    LDR R0, =LIT_15
     VLDR.F64 D0, [R0]
     VPUSH.F64 {D0}
 
@@ -336,7 +395,7 @@ while_start_2:
     VPUSH.F64 {D0}
 
     @ Empilha Constante: 1
-    LDR R0, =LIT_14
+    LDR R0, =LIT_16
     VLDR.F64 D0, [R0]
     VPUSH.F64 {D0}
 
@@ -355,12 +414,12 @@ while_start_2:
 while_end_2:
 
     @ Empilha Literal Logico: TRUE (1.0)
-    LDR R0, =LIT_15
+    LDR R0, =LIT_11
     VLDR.F64 D0, [R0]
     VPUSH.F64 {D0}
 
     @ Empilha Literal Logico: FALSE (0.0)
-    LDR R0, =LIT_16
+    LDR R0, =LIT_12
     VLDR.F64 D0, [R0]
     VPUSH.F64 {D0}
 
@@ -392,7 +451,7 @@ while_end_2:
     VPUSH.F64 {D0}
 
     @ Empilha Constante: 1
-    LDR R0, =LIT_14
+    LDR R0, =LIT_16
     VLDR.F64 D0, [R0]
     VPUSH.F64 {D0}
 

@@ -186,8 +186,8 @@ As regras formais em **cálculo de sequentes** estão em
 (5 100 200 IFELSE)       *{ condicao do IFELSE nao e bool }*
 ```
 
-Veja `tests/teste1.txt`..`teste3.txt` (programas válidos completos) e
-`tests/teste4.txt` (erros semânticos intencionais).
+Veja `tests/teste1.txt`..`tests/teste4.txt` (programas válidos completos) e
+`tests/teste_erro_semantico.txt` (erros semânticos intencionais).
 
 ## Gramática EBNF LL(1) Fatorada
 
