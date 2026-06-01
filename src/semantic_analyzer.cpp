@@ -242,7 +242,27 @@ namespace
             return TipoDado::INT; // assume int na recuperacao de erro
         }
 
-        // Demais operadores + - * | ^
+        // Potenciacao
+        // o hardware faz a exponenciacao por multiplicacao repetida
+        // entao o expoente tem que ser inteiro, real seria truncado e daria errado
+        // a base pode ser int ou real, o resultado segue o tipo da base
+        if (op == "^")
+        {
+            if (b != TipoDado::INT && b != TipoDado::DESCONHECIDO)
+                erroTipo(erros, linha,
+                         "o expoente de '^' deve ser inteiro (o hardware so faz "
+                         "exponenciacao inteira), encontrado " +
+                             nomeTipoDado(b));
+            if (a != TipoDado::DESCONHECIDO && !isNumerico(a))
+            {
+                erroTipo(erros, linha,
+                         "a base de '^' deve ser numerica, encontrado " + nomeTipoDado(a));
+                return TipoDado::DESCONHECIDO;
+            }
+            return a; // real^int -> real, int^int -> int (DESCONHECIDO se base desconhecida)
+        }
+
+        // Demais operadores + - * |
         // exigem operandos numericos do mesmo tipo
         if (a == TipoDado::DESCONHECIDO && b == TipoDado::DESCONHECIDO)
             return TipoDado::DESCONHECIDO;
@@ -274,7 +294,7 @@ namespace
 
         if (op == "|") // divisao real com resultado sempre real
             return TipoDado::REAL;
-        return num; // + - * ^ preservam o tipo dos operandos
+        return num; // + - * preservam o tipo dos operandos
     }
 
     // Valida um operador relacional e devolve bool
@@ -301,9 +321,43 @@ namespace
         }
         return TipoDado::BOOL;
     }
+
+    // Espelha o produzValor() do gerador de Assembly
+    // diz quais resultados de topo vao pra pilha de historico do RES
+    // tem que ficar igual ao gerador pra os indices do (N RES) baterem
+    bool produzValorHistorico(ASTNodeType t)
+    {
+        switch (t)
+        {
+        case ASTNodeType::NUMERO_LITERAL:
+        case ASTNodeType::BOOL_LITERAL:
+        case ASTNodeType::MEMORIA_LOAD:
+        case ASTNodeType::MEMORIA_RES:
+        case ASTNodeType::INSTRUCAO_VFP:
+            return true;
+        default:
+            return false;
+        }
+    }
 }
 
+// Versao recursiva
+// historico guarda na ordem os tipos dos resultados de topo que vao pra pilha do RES
+// assim da pra tipar o (N RES) quando o N e um literal inteiro
+static TipoDado verificarTiposImpl(ASTNode *raiz, TabelaSimbolos &tabela,
+                                   std::vector<ErroAnalise> &erros,
+                                   std::vector<TipoDado> &historico);
+
+// Entrada publica (mesma assinatura de antes) so cria o historico e chama a recursiva
 TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroAnalise> &erros)
+{
+    std::vector<TipoDado> historico;
+    return verificarTiposImpl(raiz, tabela, erros, historico);
+}
+
+static TipoDado verificarTiposImpl(ASTNode *raiz, TabelaSimbolos &tabela,
+                                   std::vector<ErroAnalise> &erros,
+                                   std::vector<TipoDado> &historico)
 {
     if (!raiz)
         return TipoDado::DESCONHECIDO;
@@ -312,10 +366,16 @@ TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroA
     {
     case ASTNodeType::PROGRAMA:
     case ASTNodeType::SEQUENCIA:
-        // Processa cada expressao na ordem do codigo-fonte 
+        // Processa cada expressao na ordem do codigo-fonte
         // para que os STORE infiram o tipo das variaveis antes dos LOAD subsequentes
         for (ASTNode *filho : raiz->filhos)
-            verificarTipos(filho, tabela, erros);
+        {
+            verificarTiposImpl(filho, tabela, erros, historico);
+            // so o PROGRAMA empilha no historico, igual ao gerador
+            // assim o (N RES) bate com a pilha STACK_RES do Assembly
+            if (raiz->tipo == ASTNodeType::PROGRAMA && produzValorHistorico(filho->tipo))
+                historico.push_back(filho->tipoDado);
+        }
         raiz->tipoDado = TipoDado::DESCONHECIDO;
         return TipoDado::DESCONHECIDO;
 
@@ -345,7 +405,7 @@ TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroA
         // infere/valida o tipo da variavel a partir do valor armazenado
         TipoDado tipoValor = raiz->filhos.empty()
                                  ? TipoDado::DESCONHECIDO
-                                 : verificarTipos(raiz->filhos[0], tabela, erros);
+                                 : verificarTiposImpl(raiz->filhos[0], tabela, erros, historico);
 
         Simbolo &sim = tabela[raiz->operando];
         if (sim.tipo == TipoDado::DESCONHECIDO)
@@ -368,24 +428,42 @@ TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroA
     case ASTNodeType::MEMORIA_RES:
     {
         // (N RES)
-        // N deve ser inteiro 
-        // o tipo do resultado e resolvido em runtime
+        // N tem que ser inteiro
+        // o tipo vem do historico quando N e um literal inteiro (0 = ultimo)
+        TipoDado tipoResultado = TipoDado::DESCONHECIDO;
         if (!raiz->filhos.empty())
         {
-            TipoDado tipoN = verificarTipos(raiz->filhos[0], tabela, erros);
+            ASTNode *no_n = raiz->filhos[0];
+            TipoDado tipoN = verificarTiposImpl(no_n, tabela, erros, historico);
             if (tipoN != TipoDado::INT && tipoN != TipoDado::DESCONHECIDO)
                 erroTipo(erros, raiz->linha,
                          "o indice N de (N RES) deve ser inteiro, encontrado " + nomeTipoDado(tipoN));
+
+            // pega o tipo do resultado N posicoes atras no historico
+            if (no_n->tipo == ASTNodeType::NUMERO_LITERAL)
+            {
+                try
+                {
+                    long n = std::stol(no_n->operando);
+                    long idx = (long)historico.size() - 1 - n;
+                    if (n >= 0 && idx >= 0 && idx < (long)historico.size())
+                        tipoResultado = historico[(size_t)idx];
+                }
+                catch (...)
+                {
+                    // N nao e numero, deixa DESCONHECIDO
+                }
+            }
         }
-        raiz->tipoDado = TipoDado::DESCONHECIDO;
-        return TipoDado::DESCONHECIDO;
+        raiz->tipoDado = tipoResultado;
+        return tipoResultado;
     }
 
     case ASTNodeType::INSTRUCAO_VFP:
     {
         // Operador aritmetico binario: + - * | / % ^
-        TipoDado a = raiz->filhos.size() > 0 ? verificarTipos(raiz->filhos[0], tabela, erros) : TipoDado::DESCONHECIDO;
-        TipoDado b = raiz->filhos.size() > 1 ? verificarTipos(raiz->filhos[1], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado a = raiz->filhos.size() > 0 ? verificarTiposImpl(raiz->filhos[0], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        TipoDado b = raiz->filhos.size() > 1 ? verificarTiposImpl(raiz->filhos[1], tabela, erros, historico) : TipoDado::DESCONHECIDO;
         raiz->tipoDado = tiparAritmetico(raiz->operando, a, b, raiz->linha, erros);
         return raiz->tipoDado;
     }
@@ -393,8 +471,8 @@ TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroA
     case ASTNodeType::INSTRUCAO_CMP:
     {
         // Operador relacional binario
-        TipoDado a = raiz->filhos.size() > 0 ? verificarTipos(raiz->filhos[0], tabela, erros) : TipoDado::DESCONHECIDO;
-        TipoDado b = raiz->filhos.size() > 1 ? verificarTipos(raiz->filhos[1], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado a = raiz->filhos.size() > 0 ? verificarTiposImpl(raiz->filhos[0], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        TipoDado b = raiz->filhos.size() > 1 ? verificarTiposImpl(raiz->filhos[1], tabela, erros, historico) : TipoDado::DESCONHECIDO;
         raiz->tipoDado = tiparRelacional(raiz->operando, a, b, raiz->linha, erros);
         return raiz->tipoDado;
     }
@@ -403,9 +481,9 @@ TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroA
     {
         // (cond then else IFELSE)
         // condicao logica; ramos do mesmo tipo
-        TipoDado cond = raiz->filhos.size() > 0 ? verificarTipos(raiz->filhos[0], tabela, erros) : TipoDado::DESCONHECIDO;
-        TipoDado entao = raiz->filhos.size() > 1 ? verificarTipos(raiz->filhos[1], tabela, erros) : TipoDado::DESCONHECIDO;
-        TipoDado senao = raiz->filhos.size() > 2 ? verificarTipos(raiz->filhos[2], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado cond = raiz->filhos.size() > 0 ? verificarTiposImpl(raiz->filhos[0], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        TipoDado entao = raiz->filhos.size() > 1 ? verificarTiposImpl(raiz->filhos[1], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        TipoDado senao = raiz->filhos.size() > 2 ? verificarTiposImpl(raiz->filhos[2], tabela, erros, historico) : TipoDado::DESCONHECIDO;
 
         if (cond != TipoDado::BOOL && cond != TipoDado::DESCONHECIDO)
             erroTipo(erros, raiz->linha,
@@ -434,8 +512,8 @@ TipoDado verificarTipos(ASTNode *raiz, TabelaSimbolos &tabela, std::vector<ErroA
     {
         // (cond corpo WHILE)
         // condicao logica
-        TipoDado cond = raiz->filhos.size() > 0 ? verificarTipos(raiz->filhos[0], tabela, erros) : TipoDado::DESCONHECIDO;
-        TipoDado corpo = raiz->filhos.size() > 1 ? verificarTipos(raiz->filhos[1], tabela, erros) : TipoDado::DESCONHECIDO;
+        TipoDado cond = raiz->filhos.size() > 0 ? verificarTiposImpl(raiz->filhos[0], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        TipoDado corpo = raiz->filhos.size() > 1 ? verificarTiposImpl(raiz->filhos[1], tabela, erros, historico) : TipoDado::DESCONHECIDO;
 
         if (cond != TipoDado::BOOL && cond != TipoDado::DESCONHECIDO)
             erroTipo(erros, raiz->linha,

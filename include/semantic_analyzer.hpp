@@ -69,12 +69,12 @@ std::string nomeTipoDado(TipoDado t);
  * Politica de tipos (estrita, sem coercao int<->real):
  * + - *        == operandos do mesmo tipo numerico  (int x int -> int, real x real -> real)
  * | (div real) == operandos do mesmo tipo numerico -> real
- * ^ (potencia) == operandos do mesmo tipo numerico -> esse tipo
+ * ^ (potencia) == base int ou real, EXPOENTE deve ser int -> tipo da base (real^int -> real)
  * / %          == somente int x int -> int (regra de especificacao)
  * relacionais  == < > <= >= sobre numericos do mesmo tipo -> bool; == != sobre mesmo tipo -> bool
  * IFELSE       == condicao bool; ramos then/else do mesmo tipo
  * WHILE        == condicao bool
- * (N RES)      == N deve ser int; tipo do resultado e resolvido em runtime (DESCONHECIDO estatico)
+ * (N RES)      == N deve ser int; tipo resolvido do historico de resultados (N posicoes atras)
  *
  * Anota `tipoDado` em cada no visitado e infere o tipo das variaveis na tabela
  * DESCONHECIDO funciona como coringa na recuperacao de erro para evitar falsos positivos em cascata

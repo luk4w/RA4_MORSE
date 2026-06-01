@@ -69,14 +69,20 @@ da linha, conclusão abaixo).
 
 ## 3. Resultado anterior — `(N RES)`
 
-`N` deve ser inteiro; o tipo do resultado é resolvido em tempo de execução
-(estaticamente tratado como `desconhecido`, não dispara erro de tipo):
+`N` deve ser inteiro. O tipo do resultado é resolvido **estaticamente** a partir do
+histórico `H` dos resultados de expressões de topo (na mesma ordem em que são empilhados
+na pilha de resultados do Assembly): o tipo de `(N RES)` é o tipo do resultado que está
+`N` posições atrás (`0` = último resultado). Se `N` não for um literal inteiro conhecido,
+o tipo permanece `desconhecido`:
 
 ```
- Γ ⊢ N : int
-──────────────────── (T-Res)
- Γ ⊢ (N RES) : ?
+ Γ ⊢ N : int     H[ |H| - 1 - N ] = τ
+──────────────────────────────────────── (T-Res)
+ H ; Γ ⊢ (N RES) : τ
 ```
+
+Como o tipo de `(N RES)` é concreto, recuperar um resultado e usá-lo num tipo incompatível
+(ex.: recuperar um `bool` e somá-lo a um `int`) é **erro semântico**.
 
 ## 4. Operadores aritméticos `+ - *`
 
@@ -101,13 +107,17 @@ Misturar `int` com `real`, ou usar `bool`, é **erro semântico**.
  Γ ⊢ (a b |) : real
 ```
 
-**Potência `^`** — operandos do mesmo tipo numérico, resultado preserva o tipo:
+**Potência `^`** — a **base** `a` pode ser `int` ou `real`, mas o **expoente `b` deve ser
+`int`** (o hardware faz exponenciação por multiplicação repetida, logo um expoente real
+seria truncado e daria resultado errado); o resultado preserva o tipo da **base**:
 
 ```
- Γ ⊢ a : τ     Γ ⊢ b : τ     τ ∈ { int, real }
-──────────────────────────────────────────────── (T-Pow)
+ Γ ⊢ a : τ     Γ ⊢ b : int     τ ∈ { int, real }
+──────────────────────────────────────────────────── (T-Pow)
  Γ ⊢ (a b ^) : τ
 ```
+
+Logo `int^int → int` e `real^int → real`. Expoente `real` ou `bool` é **erro semântico**.
 
 ## 6. Divisão inteira `/` e resto `%`
 

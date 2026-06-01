@@ -231,14 +231,14 @@
         },
         {
           "tipo": "MEMORIA_RES",
-          "tipoDado": "DESCONHECIDO",
+          "tipoDado": "INT",
           "operando": "RES",
           "opcode": "RES",
           "filhos": [
             {
               "tipo": "NUMERO_LITERAL",
               "tipoDado": "INT",
-              "operando": "1",
+              "operando": "2",
               "opcode": "NUMERO",
               "filhos": []
             }

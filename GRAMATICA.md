@@ -71,8 +71,8 @@ tipo (`tipoDado`) durante `verificarTipos`. As regras de tipo completas estão e
 | `TRUE`, `FALSE` | `TRUE` / `FALSE` | `BOOL_LITERAL` | `BOOL` |
 | `(MEM)` | `IDENTIFICADOR` isolado | `MEMORIA_LOAD` | tipo da variável na tabela de símbolos |
 | `(V MEM)` | `operando IDENTIFICADOR` | `MEMORIA_STORE` | tipo inferido de `V` (fixa o tipo da variável) |
-| `(N RES)` | `operando RES` | `MEMORIA_RES` | `DESCONHECIDO` (resolvido em runtime); `N` deve ser `INT` |
-| `(A B op)` | `OPERADOR` | `INSTRUCAO_VFP` | conforme operador: `+ - * ^` preservam o tipo; `\|` → `REAL`; `/ %` → `INT` |
+| `(N RES)` | `operando RES` | `MEMORIA_RES` | tipo do resultado `N` posições atrás no histórico; `N` deve ser `INT` |
+| `(A B op)` | `OPERADOR` | `INSTRUCAO_VFP` | `+ - *` preservam o tipo; `^` preserva o tipo da base (expoente deve ser `INT`); `\|` → `REAL`; `/ %` → `INT` |
 | `(A B rel)` | `OPERADOR_RELACIONAL` | `INSTRUCAO_CMP` | `BOOL` |
 | `(C T E IFELSE)` | `operando IFELSE` | `COMANDO_IFELSE` | tipo comum dos ramos `T`/`E`; `C` deve ser `BOOL` |
 | `(C B WHILE)` | `WHILE` | `COMANDO_WHILE` | tipo do corpo `B`; `C` deve ser `BOOL` |
