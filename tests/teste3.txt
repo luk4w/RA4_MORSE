@@ -9,7 +9,11 @@
 (7.5 2.5 -)
 (8.0 4.0 |)
 (10 ACUM) *{ define inteiro }*
+(9.99 PRECO) *{ define real }*
+(TRUE VERIFICADO) *{ define bool }*
 ((ACUM) (2 RES) +)
+((PRECO) 1.0 +)
+((VERIFICADO) FALSE !=)
 ((TRUE FALSE ==) (TRUE TRUE !=) ==)
 (((ACUM) 0 >) ((ACUM) 3 *) ((ACUM) 3 /) IFELSE)
 (0 I)

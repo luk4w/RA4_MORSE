@@ -1,14 +1,24 @@
 (START)
-*{ teste4: casos de ERRO SEMANTICO intencionais sob tipagem estrita }*
-(10 2.5 +) *{ mistura int com real }*
-(10 3.0 /) *{ divisao inteira exige operandos inteiros }*
-(7.5 2 %) *{ resto exige operandos inteiros }*
-(TRUE 5 +) *{ operando logico em operacao aritmetica }*
-(10 2.5 <) *{ relacional comparando tipos diferentes }*
-(5 100 200 IFELSE) *{ condicao do IFELSE nao e logica }*
-((1 1 ==) (10) (2.0) IFELSE) *{ ramos do IFELSE com tipos diferentes }*
-(10 X)
-(2.0 X) *{ reatribui X (int) com real - viola tipagem forte }*
-((10) (1) WHILE) *{ condicao do WHILE nao e logica }*
-(NAOEXISTE) *{ uso de variavel nunca definida }*
+*{ teste4: programa valido - integracao complexa com variaveis int, real e bool }*
+(100 LIMITE_INT)
+(0.5 FATOR_REAL)
+(FALSE FLAG_BOOL)
+
+*{ Atualiza a variavel bool baseada em uma expressao relacional }*
+(((LIMITE_INT) 50 >=) FLAG_BOOL)
+
+*{ Usa a variavel bool na condicao do WHILE }*
+(((FLAG_BOOL) TRUE ==) (((LIMITE_INT) 10 -) LIMITE_INT) WHILE)
+
+*{ Usando divisao real, divisao inteira e resto corretamente }*
+((LIMITE_INT) 3 /)
+((LIMITE_INT) 3 %)
+(15.0 2.0 |)
+
+*{ O historico (RES) resolve seu tipo perfeitamente. (0 RES) eh o 15.0/2.0 = 7.5 (REAL) }*
+(((FATOR_REAL) (0 RES) *) FATOR_REAL)
+
+*{ Testando condicional que retorna real }*
+(((FATOR_REAL) 1.0 >) (99.9) (0.0) IFELSE)
+
 (END)

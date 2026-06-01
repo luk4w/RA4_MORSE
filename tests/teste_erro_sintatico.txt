@@ -1,12 +1,19 @@
 (START)
+*{ teste_erro_sintatico: programas que falham no parser LL1 }*
+(10 I)
+(5.0 R)
+(TRUE B)
+
+*{ Sintatico falha: ordem errada dos operandos }*
 (+ + 10 20)
-(10.0 3.0 |)
-( ((SAIDA) 512.0 !=) (((SAIDA) 1.0 +) SAIDA) WHILE )
-(50.0 10.0 -)
-( ((0 RES) 120.0 >=) (2123.0) (0.0) IFELSE )
-(10.0 3.0 |)
-(15 4 /)
-(10 3 %)
+
+*{ Sintatico falha: parenteses nao fechados }*
+( ((I) 5 !=) (((I) 1 +) I) WHILE 
+
+*{ Sintatico falha: keyword mal posicionada }*
+( IFELSE ((R) 10.0 >=) (2123.0) (0.0) )
+
+*{ Sintatico falha: operador isolado sem operando }*
 (10 20 + )
-(2 3 ^)
+
 (END)

@@ -1,9 +1,23 @@
+(START)
+*{ teste_erro_multiplo: caos total misturando erros lexicos, sintaticos e semanticos }*
+(10 I)
+(5.0 R)
+(TRUE B)
 
-(+ 10 2 +)
-(10..5 3 +)
-(3.0 4.0 *)
-(10 2 //)
-(5 6 @)
-(15 4 /)
-(2 3 ^^)
+*{ ERROS LEXICOS }*
+(10..5 2.0 +)
+(5 0 //)
+(10 @ 2 +)
+
+*{ ERROS SINTATICOS }*
+(+ 5 (I))
+(((R) 2.0 *)
+(IFELSE (B) 10 20)
+
+*{ ERROS SEMANTICOS }*
+((I) (R) +) *{ int com real }*
+((B) 1 +) *{ bool com int }*
+((I) 2.0 ^) *{ expoente real }*
+(10 R) *{ Reatribuicao invalida }*
+
 (END)

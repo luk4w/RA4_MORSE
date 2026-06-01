@@ -1,0 +1,40 @@
+(START)
+*{ teste_erro_semantico: abusos elaborados contra a tipagem forte envolvendo INT, REAL e BOOL }*
+(10 VAL_INT)
+(3.14 VAL_REAL)
+(TRUE VAL_BOOL)
+
+*{ 1. Erro: Mistura de tipos em operacoes aritmeticas basicas }*
+((VAL_INT) (VAL_REAL) +)
+(5 10.0 *)
+(5.0 2 /)
+
+*{ 2. Erro: Divisao e modulo exclusivos de inteiros violados por real e bool }*
+((VAL_REAL) 2.0 /)
+(10 (VAL_BOOL) %)
+
+*{ 3. Erro: Base ou expoente com tipo errado na potenciacao }*
+(2.0 3.0 ^) *{ expoente nao pode ser real }*
+(10 (VAL_BOOL) ^) *{ expoente nao pode ser bool }*
+
+*{ 4. Erro: Operadores relacionais com tipos incompativeis }*
+((VAL_INT) (VAL_REAL) >)
+((VAL_BOOL) 10 <=)
+
+*{ 5. Erro: Estruturas de controle violadas }*
+(((VAL_INT) 5 +) (10.0) (20.0) IFELSE) *{ condicao e int, deveria ser bool }*
+((TRUE FALSE ==) (5) (5.0) IFELSE) *{ ramos int e real incompativeis }*
+(((VAL_REAL) 3.14 *) (1) WHILE) *{ condicao real no laco }*
+
+*{ 6. Erro: Quebra de tipagem forte na reatribuicao }*
+(10 VAL_REAL) *{ reatribui real com int }*
+(FALSE VAL_INT) *{ reatribui int com bool }*
+(3.14 VAL_BOOL) *{ reatribui bool com real }*
+
+*{ 7. Erro: Falha ao carregar memoria inexistente }*
+((VARIAVEL_FANTASMA) 1 +)
+
+*{ 8. Erro: Tentativa de operacao com tipo logico onde exige-se numero }*
+((VAL_BOOL) (VAL_BOOL) +)
+
+(END)
