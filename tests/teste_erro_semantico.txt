@@ -5,12 +5,12 @@
 (TRUE VALBOOL)
 
 *{ 1. Erro: Mistura de tipos em operacoes aritmeticas basicas }*
-((VAL_INT) (VAL_REAL) +)
+((VALINT) (VALREAL) +)
 (5 10.0 *)
 (5.0 2 /)
 
 *{ 2. Erro: Divisao e modulo exclusivos de inteiros violados por real e bool }*
-((VAL_REAL) 2.0 /)
+((VALREAL) 2.0 /)
 (10 (VALBOOL) %)
 
 *{ 3. Erro: Base ou expoente com tipo errado na potenciacao }*
@@ -18,17 +18,17 @@
 (10 (VALBOOL) ^) *{ expoente nao pode ser bool }*
 
 *{ 4. Erro: Operadores relacionais com tipos incompativeis }*
-((VAL_INT) (VAL_REAL) >)
+((VALINT) (VALREAL) >)
 ((VALBOOL) 10 <=)
 
 *{ 5. Erro: Estruturas de controle violadas }*
-(((VAL_INT) 5 +) (10.0) (20.0) IFELSE) *{ condicao e int, deveria ser bool }*
+(((VALINT) 5 +) (10.0) (20.0) IFELSE) *{ condicao e int, deveria ser bool }*
 ((TRUE FALSE ==) (5) (5.0) IFELSE) *{ ramos int e real incompativeis }*
-(((VAL_REAL) 3.14 *) (1) WHILE) *{ condicao real no laco }*
+(((VALREAL) 3.14 *) (1) WHILE) *{ condicao real no laco }*
 
 *{ 6. Erro: Quebra de tipagem forte na reatribuicao }*
-(10 VAL_REAL) *{ reatribui real com int }*
-(FALSE VAL_INT) *{ reatribui int com bool }*
+(10 VALREAL) *{ reatribui real com int }*
+(FALSE VALINT) *{ reatribui int com bool }*
 (3.14 VALBOOL) *{ reatribui bool com real }*
 
 *{ 7. Erro: Falha ao carregar memoria inexistente }*
