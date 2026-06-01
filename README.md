@@ -321,9 +321,11 @@ gerada com **`tests/teste1.txt`**:
 | [`ERROS_SEMANTICOS.md`](ERROS_SEMANTICOS.md) | Relatório de erros da última execução (vazio quando o programa é válido). |
 
 > O Assembly é gerado **somente** quando não há erros léxicos/sintáticos/semânticos.
-> A AST é construída por `gerarArvore()` (`include/parser.hpp`) e exportada por
-> `exportarAST()` (`include/ast_exporter.hpp`); o Assembly por `gerarAssembly()`
-> (`include/armv7_generator.hpp`).
+> A AST inicial é construída por `gerarArvore()` (`include/parser.hpp`); a árvore
+> sintática **atribuída** (aumentada) é produzida por `gerarArvoreAtribuida()`
+> (`include/semantic_analyzer.hpp`), que anota o tipo de cada nó, e exportada por
+> `exportarAST()` (`include/ast_exporter.hpp`) e `exportarArvoreAtribuida()`; o
+> Assembly por `gerarAssembly()` (`include/armv7_generator.hpp`).
 
 ## Como Ler a Tabela de Símbolos e a Árvore Atribuída
 
