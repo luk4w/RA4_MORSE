@@ -21,4 +21,8 @@
 *{ Testando condicional que retorna real }*
 (((FATORREAL) 1.0 >) (99.9) (0.0) IFELSE)
 
+*{ soma inteira e potenciacao (int e real) }*
+((LIMITEINT) 25 +) *{ soma inteira - comentario no fim da linha }*
+((LIMITEINT) 2 ^) *{ potencia int }* ((FATORREAL) 2 ^) *{ comentario entre expressoes: real^int }*
+
 (END)
