@@ -4,7 +4,7 @@ Lucas Franco de Mello - luk4w
 Nome do grupo no Canvas: RA3 2
 -->
 
-# Sistema de Regras de Tipos — Cálculo de Sequentes
+# Sistema de Regras de Tipos - Cálculo de Sequentes
 
 Documentação formal das regras de validação de tipos da linguagem (Fase 3),
 implementadas em `verificarTipos` (`src/semantic_analyzer.cpp`).
@@ -13,9 +13,9 @@ implementadas em `verificarTipos` (`src/semantic_analyzer.cpp`).
 
 A linguagem possui três tipos estáticos:
 
-- `int` — inteiro
-- `real` — ponto flutuante de precisão dupla (IEEE 754)
-- `bool` — lógico (`TRUE` / `FALSE`)
+- `int` - inteiro
+- `real` - ponto flutuante de precisão dupla (IEEE 754)
+- `bool` - lógico (`TRUE` / `FALSE`)
 
 A tipagem é **estática e forte**, **sem coerção implícita** entre `int` e `real`.
 O tipo de uma variável é fixado na sua primeira definição e não pode mudar.
@@ -43,14 +43,14 @@ O julgamento `Γ ⊢ e : τ` lê-se *"no contexto de tipos `Γ` (a tabela de sí
 
 ## 2. Memórias (Variáveis)
 
-**Uso — `(MEM)`**
+**Uso - `(MEM)`**
 (o tipo vem do contexto, exige definição prévia):
 
 ```math
 \frac{(MEM : \tau) \in \Gamma}{\Gamma \vdash (MEM) : \tau} \quad (T\text{-}Load)
 ```
 
-**Definição / Inferência — `(V MEM)`**
+**Definição / Inferência - `(V MEM)`**
 (infere o tipo de `MEM` a partir do valor `V`):
 
 ```math
@@ -71,7 +71,7 @@ O julgamento `Γ ⊢ e : τ` lê-se *"no contexto de tipos `Γ` (a tabela de sí
 \frac{\Gamma \vdash V : \tau' \quad (MEM : \tau) \in \Gamma \quad \tau \neq \tau'}{\text{Erro Semântico}} \quad (T\text{-}Store\text{-}Err)
 ```
 
-## 3. Resultado Anterior — `(N RES)`
+## 3. Resultado Anterior - `(N RES)`
 
 `N` deve ser um **inteiro não negativo** (`N ≥ 0`). O tipo do resultado é resolvido estaticamente a partir do histórico `H` dos resultados das expressões. O tipo de `(N RES)` é o tipo do resultado `N` posições atrás (`0` = último resultado).
 
