@@ -107,14 +107,15 @@ Derivacao parsear(const vector<TokenData> &tokens,
 
     size_t indexToken = 0;
     string valorReal;
-    TokenData eofToken = {"$", "$"};
+    int eofLinha = tokens.empty() ? 1 : tokens.back().linha;
+    TokenData eofToken = {"$", "$", eofLinha};
 
     string terminalAtual = tokens.empty()
                                ? "$"
                                : decodificarToken(tokens[indexToken], valorReal);
 
     // No raiz - será preenchido ao final
-    ASTNode *raiz = new ASTNode(ASTNodeType::PROGRAMA, (tokens.empty() ? 0 : tokens[0].linha), "programa");
+    ASTNode *raiz = new ASTNode(ASTNodeType::PROGRAMA, (tokens.empty() ? eofLinha : tokens[0].linha), "programa");
 
     // Lambda: avança para o próximo token
     auto avancar = [&]()

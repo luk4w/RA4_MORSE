@@ -22,11 +22,8 @@ void lerArquivo(std::string nomeArquivo, std::vector<std::string> &linhas)
     // Extrair os caracteres do arquivo e armazenar no buffer de linhas
     while (std::getline(arquivo, buffer_linha))
     {
-        // adicionar a linha lida ao vetor de linhas, caso a linha nao esteja vazia
-        if (!buffer_linha.empty())
-        {
-            linhas.push_back(buffer_linha);
-        }
+        // Adiciona todas as linhas, vazias ou nao, para preservar a numeracao original do editor
+        linhas.push_back(buffer_linha);
     }
     // Libera o lock de leitura do arquivo
     arquivo.close();

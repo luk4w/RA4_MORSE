@@ -194,14 +194,14 @@ int main(int argc, char *argv[])
 
             // Monta o miniprograma (START) <tokens da linha> (END)
             std::vector<TokenData> programaLinha;
-            programaLinha.push_back(tParEsq);
-            programaLinha.push_back(tStart);
-            programaLinha.push_back(tParDir);
+            programaLinha.push_back({T_PAREN_ESQ, "(", numLinha});
+            programaLinha.push_back({T_PALAVRA_RES, "START", numLinha});
+            programaLinha.push_back({T_PAREN_DIR, ")", numLinha});
             for (const TokenData &t : toksLinha)
                 programaLinha.push_back(t);
-            programaLinha.push_back(tParEsq);
-            programaLinha.push_back(tEnd);
-            programaLinha.push_back(tParDir);
+            programaLinha.push_back({T_PAREN_ESQ, "(", numLinha});
+            programaLinha.push_back({T_PALAVRA_RES, "END", numLinha});
+            programaLinha.push_back({T_PAREN_DIR, ")", numLinha});
 
             try
             {
