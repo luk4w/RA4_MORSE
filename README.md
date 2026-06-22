@@ -255,13 +255,3 @@ Captura dos bits dos LEDs no console do CPUlator:
   console.log("Bin(31-0): "+bin+"  Hex: 0x"+parseInt(bin,2).toString(16).toUpperCase().padStart(8,'0'));
 })();
 ```
-
-## Estrutura do repositório
-
-| Caminho | Conteúdo |
-| :--- | :--- |
-| `src/`, `include/` | Fonte: `fsm_scanner` (léxico), `parser`/`gramatica` (sintático), `semantic_analyzer` (tipos), `ast`/`ast_exporter`, `armv7_generator` (codegen), `cli_controller`, `main`, `testes`. |
-| `tests/` | Programas de teste (válidos e com erros). |
-| `TABELA_SIMBOLOS.md`, `ast_*.json`, `tokens.txt`, `saida.s`, `ERROS_SEMANTICOS.md` | Artefatos da última execução (`tests/teste1.txt`). |
-
-Testes unitários por módulo rodam no início de cada execução (`include/testes.hpp`).
