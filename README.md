@@ -1,7 +1,7 @@
 # Compilador RPN → ARMv7
 
 Lucas Franco de Mello
-PUCPR — Linguagens Formais e Compiladores — C++23.
+PUCPR - Linguagens Formais e Compiladores - C++23.
 
 Compilador para uma linguagem em **notação polonesa reversa (RPN)**. Pipeline completo:
 
@@ -186,39 +186,39 @@ Implementadas em `verificarTipos` (`src/semantic_analyzer.cpp`). O julgamento `�
 \frac{\Gamma \vdash V : \tau' \quad (MEM : \tau) \in \Gamma \quad \tau,\tau' \neq ? \quad \tau \neq \tau'}{\text{Erro Semântico}}\ (T\text{-}Store\text{-}Err)
 ```
 
-**Histórico `(N RES)`** — `N` inteiro `≥ 0`; tipo = o do resultado `N` posições atrás (`0` = último). `N` negativo é erro.
+**Histórico `(N RES)`** - `N` inteiro `≥ 0`; tipo = o do resultado `N` posições atrás (`0` = último). `N` negativo é erro.
 
 ```math
 \frac{\Gamma \vdash N : int \quad N \geq 0 \quad H[\,|H|-1-N\,] = \tau}{H ; \Gamma \vdash (N\ RES) : \tau}\ (T\text{-}Res)
 ```
 
-**Aritméticos `+ - *`** — mesmo tipo numérico, preserva o tipo (sem coerção int/real):
+**Aritméticos `+ - *`** - mesmo tipo numérico, preserva o tipo (sem coerção int/real):
 
 ```math
 \frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : \tau \quad \tau \in \{int, real\}}{\Gamma \vdash (a\ b\ op) : \tau}\ (T\text{-}Arit),\ op \in \{+,-,*\}
 ```
 
-**Divisão real `|` e potência `^`** — `|` resulta sempre `real`; `^` exige expoente `int` e preserva o tipo da base:
+**Divisão real `|` e potência `^`** - `|` resulta sempre `real`; `^` exige expoente `int` e preserva o tipo da base:
 
 ```math
 \frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : \tau \quad \tau \in \{int, real\}}{\Gamma \vdash (a\ b\ |) : real}\ (T\text{-}DivReal) \qquad
 \frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : int \quad \tau \in \{int, real\}}{\Gamma \vdash (a\ b\ \hat{}\,) : \tau}\ (T\text{-}Pow)
 ```
 
-**Divisão inteira `/` e resto `%`** — exclusivos de `int`:
+**Divisão inteira `/` e resto `%`** - exclusivos de `int`:
 
 ```math
 \frac{\Gamma \vdash a : int \quad \Gamma \vdash b : int}{\Gamma \vdash (a\ b\ op) : int}\ (T\text{-}DivInt),\ op \in \{/, \%\}
 ```
 
-**Relacionais** — ordenação `< > <= >=` exige numéricos do mesmo tipo; igualdade `== !=` aceita qualquer tipo igual; ambos resultam `bool`:
+**Relacionais** - ordenação `< > <= >=` exige numéricos do mesmo tipo; igualdade `== !=` aceita qualquer tipo igual; ambos resultam `bool`:
 
 ```math
 \frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : \tau \quad \tau \in \{int, real\}}{\Gamma \vdash (a\ b\ op) : bool}\ (T\text{-}Ord) \qquad
 \frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : \tau \quad \tau \in \{int, real, bool\}}{\Gamma \vdash (a\ b\ op) : bool}\ (T\text{-}Eq)
 ```
 
-**Controle** — `IFELSE` exige condição `bool` e ramos do mesmo tipo; `WHILE` exige condição `bool`:
+**Controle** - `IFELSE` exige condição `bool` e ramos do mesmo tipo; `WHILE` exige condição `bool`:
 
 ```math
 \frac{\Gamma \vdash c : bool \quad \Gamma \vdash e_1 : \tau \quad \Gamma \vdash e_2 : \tau}{\Gamma \vdash (c\ e_1\ e_2\ IFELSE) : \tau}\ (T\text{-}IfElse) \qquad
