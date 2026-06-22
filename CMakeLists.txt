@@ -19,6 +19,7 @@ set(SOURCES
     src/gramatica.cpp
     src/parser.cpp
     src/semantic_analyzer.cpp
+    src/hex_emitter.cpp
 )
 
 # Define o nome do executável e o(s) arquivo(s) fonte

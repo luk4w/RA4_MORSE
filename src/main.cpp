@@ -17,6 +17,7 @@
 #include "testes.hpp"
 #include "ast_exporter.hpp"
 #include "semantic_analyzer.hpp"
+#include "hex_emitter.hpp"
 
 using namespace std;
 
@@ -332,6 +333,20 @@ int main(int argc, char *argv[])
         else
         {
             cerr << "Erro ao criar arquivo de saida Assembly.\n";
+        }
+
+        // Converte o Assembly em codigo de maquina hexadecimal
+        int pendentes = 0;
+        std::string hex = gerarHex(codigoAssembly, pendentes);
+        ofstream hexFile("saida.hex");
+        if (hexFile.is_open())
+        {
+            hexFile << hex;
+            hexFile.close();
+            cout << "Hexadecimal gerado em: saida.hex";
+            if (pendentes > 0)
+                cout << " (" << pendentes << " instrucoes sem encoder)";
+            cout << "\n";
         }
     }
     catch (const std::exception &e)
