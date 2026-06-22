@@ -1,200 +1,93 @@
-# ANALISADOR SEMÂNTICO
+# Compilador RPN → ARMv7
 
-Lucas Franco de Mello - luk4w
-Nome do grupo no Canvas: RA3 2
+Lucas Franco de Mello
+PUCPR — Linguagens Formais e Compiladores — C++23.
 
-Instituição: Pontifícia Universidade Católica do Paraná (PUCPR)  
-Disciplina: Linguagens Formais e Compiladores
-Professor: Frank de Alcantara  
-Ano: 2026  
-Linguagem de implementação: C++ (padrão C++23)
+Compilador para uma linguagem em **notação polonesa reversa (RPN)**. Pipeline completo:
 
-> Devido a plataforma do github não permitir a criação de repositórios com espaços, o nome do grupo foi alterado para RA3_2, no entanto, o nome real do grupo é RA3 2.
+**léxico (FSM)** → **sintático LL(1)** → **semântico (tipos)** → **gerador de Assembly ARMv7**.
 
-O `ANALISADOR SEMÂNTICO` é a terceira fase do projeto da disciplina de `Linguagens Formais e Compiladores` ministrada pelo professor `Frank de Alcantara` na `Pontifícia Universidade Católica do Paraná`.
+O Assembly (`saida.s`) é gerado para o processador **ARMv7 (v16.1)** simulado no [CPUlator DE1-SoC](https://cpulator.01xz.net/?sys=arm-de1soc). Os valores são tratados como `double` IEEE 754 (64 bits) na FPU.
 
-## Instruções de Compilação e Execução
+## Build & Execução
 
-A infraestrutura de *build* deste projeto é orquestrada pelo **CMake**, e garante uma compilação modular e reprodutível. Como o desenvolvimento tem como alvo principal o ambiente Windows, as instruções abaixo utilizam a *toolchain* do **MSVC** (Microsoft Visual C++) integrada ao **Visual Studio Code**.
-
-#### Pré-requisitos do Ambiente
-Certifique-se de ter os seguintes componentes instalados:
-* **Compilador:** Ferramentas de Build do Visual Studio Community 2022 (ou superior) com suporte para desenvolvimento em C++23.
-* **Editor:** Visual Studio Code.
-* **Extensões (Visual Studio Code):**
-  * `C/C++` (Microsoft)
-  * `CMake Tools` (Microsoft)
-
-#### Metodo 1: Compilação via Visual Studio Code
-A extensão [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) automatiza os comandos de configuração e construção, o que simplifica o processo. Siga os passos abaixo:
-
-1. Abra a pasta raiz do projeto no Visual Studio Code (`File > Open Folder...`).
-2. A extensão identificará o arquivo `CMakeLists.txt` então, através da paleta de comandos `Ctrl+Shift+p`, ou o atalho que você configurou, selecione um **Kit** de compilação, escolha a arquitetura nativa do MSVC (ex: `Visual Studio Community 2022 Release - x86_amd64`).
-3. Aguarde o processo de configuração (*Configuring*) terminar. O CMake irá gerar a árvore de diretórios e o *cache* de compilação.
-4. Utilize o atalho `Ctrl+Shift+p` para abrir a paleta de comandos, e execute `CMake: Build` para iniciar a compilação do projeto.
-5. Se não houver erros, o executável final (`AnalisadorSemantico.exe`) será gerado dentro do diretório `build/Debug/` (ou `build/Release/`), conforme a configuração selecionada.
-
-#### Metodo 2: Compilação via CMake CLI
-
-Para quem prefere o terminal, com o CMake e a *toolchain* do MSVC disponíveis no `PATH` (use o **Developer PowerShell for VS 2022**), execute a partir da raiz do projeto:
+Requer **CMake** + **MSVC** (VS Build Tools 2022, C++23). Pelo *Developer PowerShell for VS 2022*, na raiz:
 
 ```powershell
-# 1. Configura o projeto e gera o sistema de build no diretorio build/
 cmake -S . -B build
-
-# 2. Compila no modo Release
 cmake --build build --config Release
 ```
 
-O executável final fica em `build\Release\AnalisadorSemantico.exe`. Para um build de depuração, troque `Release` por `Debug` no passo 2.
-
-### Execução
-
-O programa recebe **um único argumento**: o caminho de um arquivo de teste `.txt` que contém o programa em RPN (uma expressão por linha, entre `(START)` e `(END)`).
-
-A partir do diretório onde está o executável:
+Executável em `build\Release\AnalisadorSemantico.exe`. Recebe **um** argumento: o arquivo `.txt` com o programa RPN (uma expressão por linha, entre `(START)` e `(END)`).
 
 ```powershell
-.\AnalisadorSemantico.exe .\teste.txt
+.\build\Release\AnalisadorSemantico.exe .\tests\teste1.txt
 ```
 
-Exemplos com os arquivos de teste fornecidos na pasta `tests/`:
+Os artefatos são escritos **no diretório de onde o programa é executado**.
 
-```powershell
-# Programa valido (gera ast_atribuida.json e saida.s)
-.\AnalisadorSemantico.exe ..\..\tests\teste1.txt
+### Saídas
 
-# Programa com erros (exibe o relatório de erros e NÃO gera assembly)
-.\AnalisadorSemantico.exe ..\..\tests\teste_erro_sintatico.txt
-```
-
-> Nota: ajustar o caminho relativo (`..\..\tests\`).
-
-**Saídas geradas** no diretório de execução (o `tokens.txt` sai sempre; o `ast_inicial.json`, o `ast_atribuida.json` e o `saida.s` apenas quando o programa não contém erros):
-
-| Arquivo | Descrição |
-| :--- | :--- |
-| `tokens.txt` | Vetor de tokens da última execução (saída do analisador léxico). |
-| `ast_inicial.json` | Árvore sintática **inicial** (saída da Fase 2), capturada **antes** da análise semântica - todos os nós com `tipoDado` `DESCONHECIDO`. Serve de "antes" para evidenciar a aumentação. |
-| `ast_atribuida.json` | Árvore sintática **atribuída** (AST com `tipoDado` em cada nó) serializada em JSON. |
-| `saida.s` | Código Assembly ARMv7 gerado a partir da AST. O código gerado destina-se ao processador **ARMv7 (v16.1)**, simulado no [Cpulator](https://cpulator.01xz.net/?sys=arm-de1soc). |
-
-Se o programa **contém erros**, é exibido um **relatório de erros** (com tipo `LEXICO`/`SINTATICO`/`SEMANTICO` e número da linha) e nenhum código Assembly é gerado - o processo encerra com código de saída `1`.
-
-### Sintaxe das Estruturas de Controle
-
-A linguagem mantém a notação polonesa reversa (RPN) para todas as estruturas. Os operandos sempre precedem a keyword que os opera.
-
-#### Tomada de Decisão - `IFELSE`
-
-Requer **3 operandos** antes da keyword: condição, bloco verdadeiro e bloco falso.
-
-```
-( (condição) (bloco_verdadeiro) (bloco_falso) IFELSE )
-```
-
-**Exemplo** - se `A > B`, retorna `A + B`, senão retorna `A - B`:
-```
-( (A B >) (A B +) (A B -) IFELSE )
-```
-
-A condição deve ter tipo lógico (`bool`) - tipicamente o resultado de um operador relacional (`<`, `>`, `<=`, `>=`, `==`, `!=`) ou um literal `TRUE`/`FALSE`. Ambos os blocos são obrigatórios.
-
-#### Laço de Repetição - `WHILE`
-
-Requer **2 operandos** antes da keyword: condição e bloco de repetição.
-
-```
-( (condição) (bloco_repeticao) WHILE )
-```
-
-**Exemplo** - enquanto `CONTADOR < 10`, soma `1` ao contador e armazena:
-```
-( ((CONTADOR) 10 <) (((CONTADOR) 1 +) CONTADOR) WHILE )
-```
-
-O laço avalia a condição antes de cada iteração. Quando a condição resulta em falso, a execução continua na linha seguinte ao `WHILE`.
-
-### Comandos Especiais (Manipulação de Memória e Histórico)
-
-A linguagem suporta operações de estado por meio da palavra reservada `RES` e de identificadores arbitrários para variáveis (`MEM`). A sintaxe segue a notação polonesa reversa:
-
-#### Leitura de Histórico `RES`: `(N RES)`
-Retorna o valor computado `N` expressões atrás no histórico da FPU. O índice `N` deve ser um inteiro não negativo, onde `0` representa o último resultado avaliado. O **tipo** de `(N RES)` é inferido estaticamente como o tipo desse resultado, então recuperar (por exemplo) um `bool` e usá-lo num operador aritmético é erro semântico. Exemplo:
-```
-(0 RES)
-```
-Carrega o resultado imediatamente anterior.
-
-#### Escrita em Memória `STORE`: `(V MEM)`
-Armazena o valor `V` (que pode ser um literal numérico ou o resultado de uma expressão aninhada) na variável identificada por `MEM`. Exemplos:
-```
-(10.5 CONTADOR)
-```
-```
-((5 2 +) X)
-```
-
-#### Leitura de Memória `LOAD`: `(MEM)`
-Carrega na pilha da FPU o valor armazenado na variável identificada. A variável precisa ter sido definida antes com `(V MEM)` - como `(V MEM)` define e inicializa em um único passo, ler uma memória nunca definida é **erro semântico** (uso antes da definição), reportado com a linha e o nome da variável. Exemplo:
-```
-((CONTADOR) 1 +)
-```
-
-## Sistema de Tipos
-
-A linguagem é **estática e fortemente tipada**, com três tipos:
-
-| Tipo | Descrição | Literais |
+| Arquivo | Quando | Conteúdo |
 | :--- | :--- | :--- |
-| `int` | inteiro | `42`, `0`, `1024` (sem ponto decimal) |
-| `real` | ponto flutuante (`double` IEEE 754) | `3.14`, `10.0`, `0.5` (com ponto) |
-| `bool` | lógico | `TRUE`, `FALSE` e resultados de operadores relacionais |
+| `tokens.txt` | sempre | Vetor de tokens (saída do léxico). |
+| `ast_inicial.json` | sem erros | AST **antes** da semântica (todos os nós `DESCONHECIDO`). |
+| `ast_atribuida.json` | sem erros | AST **atribuída** (com `tipoDado` e `linha` por nó). |
+| `saida.s` | sem erros | Assembly ARMv7. |
+| `TABELA_SIMBOLOS.md` | sem erros | Variáveis, tipos, linha de definição e usos. |
+| `ERROS_SEMANTICOS.md` | sempre | Relatório de erros (vazio se válido). |
 
-O tipo das variáveis é **inferido pelo contexto** de uso e **fixado** na primeira
-definição (não pode mudar depois). **Não há coerção implícita** entre `int` e
-`real`: misturar os dois numa mesma operação é erro semântico.
+Havendo **qualquer** erro (léxico/sintático/semântico), o programa imprime o relatório, **não gera Assembly** e sai com código `1`.
 
-| Operador | Operandos exigidos | Resultado |
+## Linguagem (RPN)
+
+Operandos sempre **precedem** o operador. Todas as estruturas seguem RPN.
+
+### Tipos
+
+Estática e fortemente tipada. **Sem coerção** implícita entre `int` e `real`; o tipo da variável é inferido no uso e **fixado** na primeira definição.
+
+| Tipo | Literais |
+| :--- | :--- |
+| `int` | `42`, `1024` (sem ponto) |
+| `real` | `3.14`, `10.0` (com ponto) |
+| `bool` | `TRUE`, `FALSE` e relacionais |
+
+### Operadores
+
+| Operador | Operandos | Resultado |
 | :--- | :--- | :--- |
 | `+` `-` `*` | mesmo tipo numérico | mesmo tipo |
-| `\|` (divisão real) | mesmo tipo numérico | `real` |
-| `^` (potência) | base `int`/`real`; **expoente `int`** | tipo da base (`real^int → real`) |
-| `/` `%` (divisão inteira, resto) | **apenas `int`** | `int` |
-| `< > <= >=` | mesmo tipo **numérico** | `bool` |
-| `== !=` | mesmo tipo (`int`/`real`/`bool`) | `bool` |
-| `IFELSE` | condição `bool`; ramos do mesmo tipo | tipo dos ramos |
-| `WHILE` | condição `bool` | tipo do corpo |
+| `\|` divisão real | mesmo tipo numérico | `real` |
+| `^` potência | base `int`/`real`, expoente `int` | tipo da base |
+| `/` `%` divisão inteira, resto | só `int` | `int` |
+| `< > <= >=` | mesmo tipo numérico | `bool` |
+| `== !=` | mesmo tipo | `bool` |
 
-As regras formais em **cálculo de sequentes** estão em
-[`REGRAS_TIPOS.md`](REGRAS_TIPOS.md).
+### Estruturas e memória
 
-### Exemplos válidos e inválidos
+| Construção | Sintaxe | Notas |
+| :--- | :--- | :--- |
+| Condicional | `( (cond) (verdadeiro) (falso) IFELSE )` | `cond` `bool`; ramos do mesmo tipo. |
+| Laço | `( (cond) (corpo) WHILE )` | avalia `cond` antes de cada iteração. |
+| Escrita memória | `(V MEM)` | define **e** inicializa a variável. |
+| Leitura memória | `(MEM)` | erro semântico se nunca definida. |
+| Histórico | `(N RES)` | resultado `N` expressões atrás (`0` = último). |
 
 ```
-*{ VALIDOS }*
-(10 3 +)                 *{ int + int -> int }*
-(10.5 2.5 *)             *{ real * real -> real }*
-(20 6 /)                 *{ divisao inteira -> int }*
-(9.0 2.0 |)              *{ divisao real -> real }*
-((CONTADOR) 50 >=)       *{ relacional -> bool }*
-((X 0 >) (X) (0 X) IFELSE)   *{ condicao bool, ramos compativeis }*
-
-*{ INVALIDOS (erro semantico) }*
-(10 2.5 +)               *{ mistura int com real }*
-(10 3.0 /)               *{ divisao inteira exige inteiros }*
-(TRUE 5 +)               *{ operando logico em aritmetica }*
-(5 100 200 IFELSE)       *{ condicao do IFELSE nao e bool }*
+( (A B >) (A B +) (A B -) IFELSE )          *{ se A>B então A+B senão A-B }*
+( ((CONTADOR) 10 <) (((CONTADOR) 1 +) CONTADOR) WHILE )
+(10 3 +)        *{ ok: int }*       (10 2.5 +)   *{ erro: mistura int/real }*
 ```
 
-Veja `tests/teste1.txt`..`tests/teste4.txt` (programas válidos completos) e
-`tests/teste_erro_semantico.txt` (erros semânticos intencionais).
+Comentários: `*{ ... }*`. Veja `tests/teste1.txt`..`teste4.txt` (válidos) e `tests/teste_erro_*.txt` (erros).
 
-## Gramática EBNF LL(1) Fatorada
+## Gramática LL(1)
 
-Para garantir que o Analisador SEMÂNTICO opere de forma determinística, a gramática em Notação Polonesa Reversa (RPN) foi submetida à Fatoração à Esquerda. Isso eliminou os conflitos de derivação, e resultou na seguinte estrutura formal:
+Gramática **LL(1)** fatorada à esquerda e livre de conflitos. FIRST/FOLLOW e a tabela de parsing são **calculados dinamicamente** por `src/gramatica.cpp` e impressos no início de cada execução.
 
-**Regras de Produção (EBNF):**
+**Terminais:** `(` `)` `START` `END` `NUMERO` `IDENTIFICADOR` `OPERADOR` (`+ - * | / % ^`) · `OPERADOR_RELACIONAL` (`== != < > <= >=`) · `IFELSE` `WHILE` `RES` `TRUE` `FALSE`.
+**Não-terminais:** `programa` `sequencia_execucao` `avaliacao_sequencia` `expressao_aninhada` `operando` `corpo_expressao` `complemento_expressao` `resto_complemento` `operacao`.
 
 ```ebnf
 programa              = "(" , "START" , ")" , sequencia_execucao ;
@@ -208,164 +101,167 @@ resto_complemento     = operacao | ε ;
 operacao              = OPERADOR | OPERADOR_RELACIONAL | WHILE | operando , "IFELSE" ;
 ```
 
-### Dicionário de Símbolos
+A RPN é capturada por `corpo_expressao`: operandos precedem a operação; `operando → expressao_aninhada` permite aninhamento ilimitado.
 
-**Terminais (Tokens):**
-`PARENTESE_ESQ`, `PARENTESE_DIR`, `START`, `END`, `NUMERO`, `IDENTIFICADOR`, `OPERADOR`, `OPERADOR_RELACIONAL`, `IFELSE`, `WHILE`, `RES`, `TRUE`, `FALSE`
+### Atributos (gramática atribuída)
 
-**Não-Terminais:**
-`programa`, `sequencia_execucao`, `avaliacao_sequencia`, `expressao_aninhada`, `operando`, `corpo_expressao`, `complemento_expressao`, `resto_complemento`, `operacao`
+Cada construção gera um nó na AST (`ASTNode`) e recebe `tipoDado` em `verificarTipos`. `reduzirFrame` (`src/parser.cpp`) decide entre `MEMORIA_LOAD`/`MEMORIA_STORE` conforme o `IDENTIFICADOR` apareça sozinho ou após um valor.
 
-### Gramática atribuída, FIRST/FOLLOW e tabela LL(1)
+| Forma RPN | Token / produção | Nó da AST | `tipoDado` |
+|-----------|------------------|-----------|------------|
+| `42`, `3.14` | `NUMERO` | `NUMERO_LITERAL` | `INT` sem ponto, `REAL` com ponto |
+| `TRUE`, `FALSE` | `TRUE`/`FALSE` | `BOOL_LITERAL` | `BOOL` |
+| `(MEM)` | `IDENTIFICADOR` isolado | `MEMORIA_LOAD` | tipo da variável na tabela |
+| `(V MEM)` | `operando IDENTIFICADOR` | `MEMORIA_STORE` | tipo de `V` (fixa a variável) |
+| `(N RES)` | `operando RES` | `MEMORIA_RES` | tipo do resultado `N` atrás; `N` é `INT` |
+| `(A B op)` | `OPERADOR` | `INSTRUCAO_VFP` | `+ - *` preservam; `^` preserva a base; `\|`→`REAL`; `/ %`→`INT` |
+| `(A B rel)` | `OPERADOR_RELACIONAL` | `INSTRUCAO_CMP` | `BOOL` |
+| `(C T E IFELSE)` | `operando IFELSE` | `COMANDO_IFELSE` | tipo comum dos ramos; `C` é `BOOL` |
+| `(C B WHILE)` | `WHILE` | `COMANDO_WHILE` | tipo do corpo; `C` é `BOOL` |
 
-Os conjuntos **FIRST/FOLLOW**, a **tabela de parsing LL(1)** completa e os
-**atributos semânticos** (nó da AST e tipo inferido de cada produção) estão
-documentados em **[`GRAMATICA.md`](GRAMATICA.md)** - calculados dinamicamente por
-`src/gramatica.cpp` e impressos no início de cada execução. A ausência de colisões
-em qualquer célula `M[A, t]` comprova que a gramática é **LL(1)**.
- 
-## Tratamento e Recuperação de Erros
+### FIRST / FOLLOW
 
-O analisador implementa **recuperação de erros** (*panic mode*) com granularidade de **linha**: ao encontrar um erro, ele **não interrompe** a análise no primeiro problema - registra o erro e prossegue, de modo a reportar **todos** os erros do programa em uma única execução.
+| Não-terminal | FIRST | FOLLOW |
+|--------------|-------|--------|
+| `programa` | `(` | `$` |
+| `sequencia_execucao` | `(` | `$` |
+| `avaliacao_sequencia` | `END` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `$` |
+| `expressao_aninhada` | `(` | `OPERADOR` `OPERADOR_RELACIONAL` `IFELSE` `WHILE` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` |
+| `operando` | `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `OPERADOR` `OPERADOR_RELACIONAL` `IFELSE` `WHILE` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` |
+| `corpo_expressao` | `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `)` |
+| `complemento_expressao` | `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `)` |
+| `resto_complemento` | `OPERADOR` `OPERADOR_RELACIONAL` `WHILE` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `)` |
+| `operacao` | `OPERADOR` `OPERADOR_RELACIONAL` `WHILE` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `)` |
 
-### Fluxo de análise
+### Tabela de parsing LL(1)
 
-1. **Análise léxica** - cada linha é tokenizada isoladamente. Se uma linha contém um erro léxico (número malformado `10..5`, operador inexistente `//`, caractere inválido `@`), o erro é registrado, os tokens parciais daquela linha são descartados e a análise segue para a próxima linha.
-2. **Validação estrutural** - verifica-se que o programa possui as linhas obrigatórias `(START)` e `(END)`.
-3. **Análise sintática** - executa **sempre**, mesmo que existam erros léxicos. Como as linhas lexicamente inválidas já tiveram seus tokens descartados, elas não chegam ao parser e **não geram erros sintáticos falsos** (o que evita o efeito *cascata*). Cada linha de expressão é analisada isoladamente: monta-se internamente um miniprograma `(START) <linha> (END)` e invoca-se o parser LL(1); se a linha falha, o erro é registrado e a análise continua na próxima linha.
-4. **Relatório de erros** - todos os erros (léxicos, sintáticos e semânticos) são acumulados, **ordenados por número de linha** e exibidos juntos, com o tipo (`LEXICO`/`SINTATICO`/`SEMANTICO`), a linha e a mensagem.
-5. **Gate de geração de código** - o código Assembly **só é gerado se não houver nenhum erro**. Se houver qualquer erro, o programa exibe o relatório e encerra com código de saída `1`, sem produzir `saida.s`.
-
-### Mensagens de erro
-
-As mensagens incluem sempre o **número da linha** e o **tipo** do erro. Exemplo de saída para um programa com múltiplos erros:
+`M[Não-terminal, Terminal] = Produção`. Células vazias = erro sintático; `ε` = derivação vazia.
 
 ```
-============================================================
- ERROS
-------------------------------------------------------------
- Total: 3 lexicos, 2 sintaticos
-------------------------------------------------------------
-  Linha 2 | SINTATICO | Erro de sintaxe na linha 2: nenhuma regra em M[avaliacao_sequencia][OPERADOR] para o token '+'
+M[programa, (]                       = ( START ) sequencia_execucao
+M[sequencia_execucao, (]             = ( avaliacao_sequencia
+M[avaliacao_sequencia, END]          = END )
+M[avaliacao_sequencia, ( NUMERO TRUE FALSE IDENTIFICADOR RES] = corpo_expressao ) sequencia_execucao
+M[expressao_aninhada, (]             = ( corpo_expressao )
+M[operando, NUMERO]                  = NUMERO
+M[operando, TRUE]                    = TRUE
+M[operando, FALSE]                   = FALSE
+M[operando, IDENTIFICADOR]           = IDENTIFICADOR
+M[operando, RES]                     = RES
+M[operando, (]                       = expressao_aninhada
+M[corpo_expressao, ( NUMERO TRUE FALSE IDENTIFICADOR RES] = operando complemento_expressao
+M[complemento_expressao, ( NUMERO TRUE FALSE IDENTIFICADOR RES] = operando resto_complemento
+M[complemento_expressao, )]          = ε
+M[resto_complemento, OPERADOR OPERADOR_RELACIONAL WHILE ( NUMERO TRUE FALSE IDENTIFICADOR RES] = operacao
+M[resto_complemento, )]              = ε
+M[operacao, OPERADOR]                = OPERADOR
+M[operacao, OPERADOR_RELACIONAL]     = OPERADOR_RELACIONAL
+M[operacao, WHILE]                   = WHILE
+M[operacao, ( NUMERO TRUE FALSE IDENTIFICADOR RES] = operando IFELSE
+```
+
+A ausência de colisão em qualquer `M[A, t]` prova que a gramática é **LL(1)**.
+
+## Regras de tipos (cálculo de sequentes)
+
+Implementadas em `verificarTipos` (`src/semantic_analyzer.cpp`). O julgamento `Γ ⊢ e : τ` lê-se *"no contexto `Γ` (tabela de símbolos), a expressão `e` tem tipo `τ`"*. O tipo `?` (`DESCONHECIDO`) é coringa: operandos já `?` (por erro anterior) não disparam novos erros, quebrando cascata de falsos positivos.
+
+**Literais**
+
+```math
+\frac{\text{n é dígitos}}{\Gamma \vdash n : int}\ (T\text{-}Int) \qquad
+\frac{\text{r tem ponto}}{\Gamma \vdash r : real}\ (T\text{-}Real) \qquad
+\frac{}{\Gamma \vdash TRUE/FALSE : bool}\ (T\text{-}Bool)
+```
+
+**Memórias.** `construirTabelaSimbolos` insere cada `MEM` definida como `MEM : ?`; `verificarTipos` resolve no primeiro `(V MEM)`. Ler memória nunca definida é erro semântico.
+
+```math
+\frac{(MEM : \tau) \in \Gamma}{\Gamma \vdash (MEM) : \tau}\ (T\text{-}Load) \qquad
+\frac{\Gamma \vdash V : \tau \quad (MEM : ?) \in \Gamma \quad \tau \neq ?}{\Gamma[MEM \mapsto \tau] \vdash (V\ MEM) : \tau}\ (T\text{-}Store\text{-}Def)
+```
+
+```math
+\frac{\Gamma \vdash V : \tau \quad (MEM : \tau) \in \Gamma}{\Gamma \vdash (V\ MEM) : \tau}\ (T\text{-}Store\text{-}Ok) \qquad
+\frac{\Gamma \vdash V : \tau' \quad (MEM : \tau) \in \Gamma \quad \tau,\tau' \neq ? \quad \tau \neq \tau'}{\text{Erro Semântico}}\ (T\text{-}Store\text{-}Err)
+```
+
+**Histórico `(N RES)`** — `N` inteiro `≥ 0`; tipo = o do resultado `N` posições atrás (`0` = último). `N` negativo é erro.
+
+```math
+\frac{\Gamma \vdash N : int \quad N \geq 0 \quad H[\,|H|-1-N\,] = \tau}{H ; \Gamma \vdash (N\ RES) : \tau}\ (T\text{-}Res)
+```
+
+**Aritméticos `+ - *`** — mesmo tipo numérico, preserva o tipo (sem coerção int/real):
+
+```math
+\frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : \tau \quad \tau \in \{int, real\}}{\Gamma \vdash (a\ b\ op) : \tau}\ (T\text{-}Arit),\ op \in \{+,-,*\}
+```
+
+**Divisão real `|` e potência `^`** — `|` resulta sempre `real`; `^` exige expoente `int` e preserva o tipo da base:
+
+```math
+\frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : \tau \quad \tau \in \{int, real\}}{\Gamma \vdash (a\ b\ |) : real}\ (T\text{-}DivReal) \qquad
+\frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : int \quad \tau \in \{int, real\}}{\Gamma \vdash (a\ b\ \hat{}\,) : \tau}\ (T\text{-}Pow)
+```
+
+**Divisão inteira `/` e resto `%`** — exclusivos de `int`:
+
+```math
+\frac{\Gamma \vdash a : int \quad \Gamma \vdash b : int}{\Gamma \vdash (a\ b\ op) : int}\ (T\text{-}DivInt),\ op \in \{/, \%\}
+```
+
+**Relacionais** — ordenação `< > <= >=` exige numéricos do mesmo tipo; igualdade `== !=` aceita qualquer tipo igual; ambos resultam `bool`:
+
+```math
+\frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : \tau \quad \tau \in \{int, real\}}{\Gamma \vdash (a\ b\ op) : bool}\ (T\text{-}Ord) \qquad
+\frac{\Gamma \vdash a : \tau \quad \Gamma \vdash b : \tau \quad \tau \in \{int, real, bool\}}{\Gamma \vdash (a\ b\ op) : bool}\ (T\text{-}Eq)
+```
+
+**Controle** — `IFELSE` exige condição `bool` e ramos do mesmo tipo; `WHILE` exige condição `bool`:
+
+```math
+\frac{\Gamma \vdash c : bool \quad \Gamma \vdash e_1 : \tau \quad \Gamma \vdash e_2 : \tau}{\Gamma \vdash (c\ e_1\ e_2\ IFELSE) : \tau}\ (T\text{-}IfElse) \qquad
+\frac{\Gamma \vdash c : bool \quad \Gamma \vdash corpo : \tau}{\Gamma \vdash (c\ corpo\ WHILE) : \tau}\ (T\text{-}While)
+```
+
+Os erros de tipo são acumulados como `SEMANTICO`; o Assembly só é gerado com zero pendências.
+
+## Erros
+
+Recuperação em *panic mode* por **linha**: registra o erro e continua, reportando **todos** numa execução. Linhas com erro léxico têm os tokens descartados e não chegam ao parser (sem cascata). Erros ordenados por linha, com tipo (`LEXICO`/`SINTATICO`/`SEMANTICO`):
+
+```
   Linha 3 | LEXICO | Numero malformado na linha 3: 10..
-  Linha 5 | LEXICO | Erro na linha 5 operador '//' nao existe. Use '/' para divisao inteira ou '|' para real.
-  Linha 6 | LEXICO | Token invalido na linha 6 '@' na posicao 5
-  Linha 8 | SINTATICO | Erro de sintaxe na linha 8: esperado 'PARENTESE_DIR', encontrado 'OPERADOR' (valor: '^')
-============================================================
+  Linha 8 | SINTATICO | esperado 'PARENTESE_DIR', encontrado 'OPERADOR' (valor: '^')
 ```
 
-Os arquivos `tests/teste_erro_lexico.txt` e `tests/teste_erro_sintatico.txt` exercitam, respectivamente, a recuperação de erros léxicos e sintáticos.
+## Resultados (validação IEEE 754)
 
+Saídas conferidas bit-a-bit nos 32 LEDs do CPUlator (Palavra Alta/Baixa via KEY1/KEY0) contra cálculo manual da pilha RPN.
 
-## Resultados
+| Teste | Expressão | Esperado | Palavra Alta | Palavra Baixa |
+| :--- | :--- | :---: | :---: | :---: |
+| Potência (T2) | `((((2 2 ^) 2 ^) 2 ^))` | `256.0` | `0x40700000` | `0x00000000` |
+| Condicional (T3) | `( ((0 RES) 500.0 >=) (512.0) (0.0) IFELSE )` | `512.0` | `0x40800000` | `0x00000000` |
+| Integração (T4) | `( ((CONTADOR) 5 ==) (12 SAIDA) (2026 SAIDA) IFELSE )` | `12.0` | `0x40280000` | `0x00000000` |
 
-Para assegurar a conformidade com a norma IEEE 754 de 64 bits (Double Precision) exigida pelo edital, todos os resultados obtidos nos 32 LEDs do simulador foram submetidos a um processo de verificação cruzada.
+Captura dos bits dos LEDs no console do CPUlator:
 
-#### Metodologia de Verificação
-
-* **Cálculo Analítico:** Resolução manual da pilha RPN para determinar o valor decimal esperado de cada expressão.
-* **Extração de Bits:** Captura dos estados lógicos dos LEDs (Palavra Alta e Palavra Baixa) a partir da injeção de JavaScript no DOM do CPULator. A montagem das palavras de 64 bits foi validada e comparada com a ferramenta online [BinaryConvert (Double Precision)](https://www.binaryconvert.com/result_double.html).
-
-**Script de Captura (Bit Sniffer):**
 ```javascript
-(function() {
-    const leds = document.querySelectorAll('#devff200000 .dev_led_led');
-    let binary = Array.from(leds)
-        .map(led => led.classList.contains('dev_led_on') ? '1' : '0')
-        .join('');
-    let hex = parseInt(binary, 2).toString(16).toUpperCase().padStart(8, '0');
-    console.log("%c ASMNATOR - Bit Sniffer ", "background: #222; color: #bada55; padding: 2px;");
-    console.log("Binário (31-0): " + binary);
-    console.log("Hexadecimal: 0x" + hex);
+(function(){
+  const leds = document.querySelectorAll('#devff200000 .dev_led_led');
+  const bin = Array.from(leds).map(l => l.classList.contains('dev_led_on')?'1':'0').join('');
+  console.log("Bin(31-0): "+bin+"  Hex: 0x"+parseInt(bin,2).toString(16).toUpperCase().padStart(8,'0'));
 })();
 ```
 
-#### Evidências de Teste (Casos de Sucesso)
+## Estrutura do repositório
 
-A tabela abaixo detalha os testes realizados para validar a recursividade da gramática e a corretude do gerador de código para fluxos de controle e aritmética complexa.
-
-| Caso de Teste | Expressão RPN Relevante | Resultado Esperado | Palavra Alta (Hex) | Palavra Baixa (Hex) | Status |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **Potência Recursiva (T2)** | `( ( ( ( 2 2 ^ ) 2 ^ ) 2 ^ ) )` | `256.0` | `0x40700000` | `0x00000000` |  OK |
-| **Lógica Condicional (T3)** | `( ((0 RES) 500.0 >=) (512.0) (0.0) IFELSE )` | `512.0` | `0x40800000` | `0x00000000` |  OK |
-| **Integração Final (T4)** | `( ((CONTADOR) 5 ==) (12 SAIDA) (2026 SAIDA) IFELSE )` | `12.0` | `0x40280000` | `0x00000000` |  OK |
-
-#### Análise de Precisão IEEE 754
-
-No teste de **Lógica Condicional (T3)**, por exemplo, o valor decimal `512.0` é representado em hexadecimal de precisão dupla como `0x4080000000000000`. 
-1. Ao pressionar **KEY1**, o simulador exibe a Palavra Alta: `0x40800000`.
-2. Ao pressionar **KEY0**, o simulador exibe a Palavra Baixa: `0x00000000`.
-
-A coincidência bit-a-bit entre o cálculo teórico e a saída do hardware valida a implementação da FPU e a sincronização de flags via `VMRS`.
-
-## Saídas da Última Execução
-
-O programa escreve os artefatos **no diretório de onde é executado**, com
-caminhos relativos. Portanto:
-
-- Ao executar a partir da **raiz do projeto**
-  (`.\build\Release\AnalisadorSemantico.exe .\tests\teste1.txt`), os artefatos
-  são gerados **na raiz** - foi assim que as cópias versionadas abaixo foram produzidas.
-- Ao executar de dentro de `build/Release/`, os artefatos são gerados ali (diretório
-  ignorado pelo `.gitignore`).
-
-Os artefatos versionados no repositório correspondem à **última execução válida**,
-gerada com **`tests/teste1.txt`**:
-
-| Arquivo | Descrição |
+| Caminho | Conteúdo |
 | :--- | :--- |
-| [`tokens.txt`](tokens.txt) | Vetor de tokens (saída do analisador léxico). |
-| [`ast_inicial.json`](ast_inicial.json) | Árvore sintática **inicial** (Fase 2), antes da análise semântica - todos os nós `DESCONHECIDO`. Contraste com `ast_atribuida.json` evidencia a aumentação. |
-| [`ast_atribuida.json`](ast_atribuida.json) | Árvore sintática **atribuída** (com `tipoDado` e `linha` em cada nó), serializada em JSON. |
-| [`TABELA_SIMBOLOS.md`](TABELA_SIMBOLOS.md) | Tabela de símbolos com tipos inferidos, linha de definição e usos. |
-| [`saida.s`](saida.s) | Código Assembly ARMv7 para o simulador CPUlator-ARMv7 DEC1-SOC (v16.1). |
-| [`ERROS_SEMANTICOS.md`](ERROS_SEMANTICOS.md) | Relatório de erros da última execução (vazio quando o programa é válido). |
+| `src/`, `include/` | Fonte: `fsm_scanner` (léxico), `parser`/`gramatica` (sintático), `semantic_analyzer` (tipos), `ast`/`ast_exporter`, `armv7_generator` (codegen), `cli_controller`, `main`, `testes`. |
+| `tests/` | Programas de teste (válidos e com erros). |
+| `TABELA_SIMBOLOS.md`, `ast_*.json`, `tokens.txt`, `saida.s`, `ERROS_SEMANTICOS.md` | Artefatos da última execução (`tests/teste1.txt`). |
 
-> O Assembly é gerado **somente** quando não há erros léxicos/sintáticos/semânticos.
-> A AST inicial é construída por `gerarArvore()` (`include/parser.hpp`); a árvore
-> sintática **atribuída** (aumentada) é produzida por `gerarArvoreAtribuida()`
-> (`include/semantic_analyzer.hpp`), que anota o tipo de cada nó, e serializada em
-> JSON por `exportarAST()` (`include/ast_exporter.hpp`); o Assembly por
-> `gerarAssembly()` (`include/armv7_generator.hpp`).
-
-## Como Ler a Tabela de Símbolos e a Árvore Atribuída
-
-### Tabela de símbolos (`TABELA_SIMBOLOS.md`)
-
-A tabela registra cada variável (memória) declarada no programa, uma por linha, com quatro colunas:
-
-- **Variável** - o nome da memória (ex.: `CONTADOR`).
-- **Tipo** - o tipo fixado na primeira definição `(V MEM)`: `INT`, `REAL`, `BOOL` ou `DESCONHECIDO`.
-- **Linha Definição** - a linha do código-fonte onde a variável recebeu sua primeira definição.
-- **Linhas de Uso** - as linhas onde a variável foi lida `(MEM)` ou reatribuída.
-
-A função `construirTabelaSimbolos` cria a tabela e `verificarTipos` preenche os tipos. Ela é a base para detectar uso antes da definição e reatribuição com tipo incompatível.
-
-### Árvore atribuída (`ast_atribuida.json`)
-
-A árvore sintática atribuída é a AST anotada com a informação semântica de cada nó, serializada em JSON. Cada nó traz os campos:
-
-- **`tipo`** - a categoria sintática do nó (ex.: `INSTRUCAO_VFP`, `COMANDO_IFELSE`, `MEMORIA_LOAD`, `BOOL_LITERAL`);
-- **`tipoDado`** - o **tipo inferido** (`INT`, `REAL`, `BOOL` ou `DESCONHECIDO`), resultado de `verificarTipos`;
-- **`linha`** - a linha do código-fonte de origem;
-- **`operando`** - o valor/nome associado, quando há (ex.: o operador `+` ou o nome da variável, que referencia a tabela de símbolos);
-- **`opcode`** - a instrução-alvo usada na geração de Assembly (ex.: `VADD.F64`);
-- **`filhos`** - os nós aninhados (a estrutura reflete o aninhamento das expressões RPN).
-
-É essa árvore que justifica a geração do Assembly.
-
-Para evidenciar a **aumentação semântica**, o programa também emite `ast_inicial.json`: a mesma árvore **antes** da fase semântica, com todos os nós em `tipoDado` `DESCONHECIDO`. Comparar os dois arquivos mostra a inferência de tipos em ação - cada nó tipável sai de `DESCONHECIDO` para `INT`, `REAL` ou `BOOL`.
-
-## Documentação (Artefatos de Entrega)
-
-| Documento | Conteúdo |
-| :--- | :--- |
-| [`GRAMATICA.md`](GRAMATICA.md) | Gramática atribuída em EBNF, FIRST/FOLLOW e tabela LL(1). |
-| [`REGRAS_TIPOS.md`](REGRAS_TIPOS.md) | Sistema de regras de tipos em cálculo de sequentes. |
-| [`TABELA_SIMBOLOS.md`](TABELA_SIMBOLOS.md) | Tabela de símbolos da última execução. |
-| [`ast_atribuida.json`](ast_atribuida.json) | Árvore sintática atribuída da última execução (JSON, com `tipoDado` e `linha` por nó). |
-| [`ERROS_SEMANTICOS.md`](ERROS_SEMANTICOS.md) | Relatório de erros da última execução (gerado mesmo se vazio). |
-
-Os testes unitários por módulo (léxico, parser, tabela de símbolos e verificação
-de tipos) são executados automaticamente no início de cada execução do programa
-(`include/testes.hpp`).
+Testes unitários por módulo rodam no início de cada execução (`include/testes.hpp`).

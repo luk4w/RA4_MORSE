@@ -2,7 +2,5 @@ build
 .codegraph/
 *.md
 !README.md
-!GRAMATICA.md
 !TABELA_SIMBOLOS.md
 !ERROS_SEMANTICOS.md
-!REGRAS_TIPOS.md
