@@ -1,0 +1,7 @@
+(START)
+( (5 2 AND) X )
+( (X 1 <<) Y )
+( (Y NOT) Z )
+( (1 0xFF200000 WRITE) )
+( (300 DELAY) )
+(END)
