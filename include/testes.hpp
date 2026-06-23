@@ -665,6 +665,51 @@ inline void testeTipoResIndiceNegativoErro()
     std::cout << "  -> [OK] Tipos: (N RES) com indice negativo dispara erro\n";
 }
 
+inline void testeTipoWriteValorRealErro()
+{
+    std::vector<ErroAnalise> erros;
+    TabelaSimbolos tabela;
+    // (3.14 0xFF200000 WRITE) -> WRITE e exclusivo de int (STR num registrador
+    // ARM de 32 bits); valor real (double) deve disparar erro semantico
+    ASTNode *wr = new ASTNode(ASTNodeType::COMANDO_WRITE, 1, "WRITE", "WRITE");
+    wr->filhos.push_back(noNum("3.14"));       // valor real -> invalido
+    wr->filhos.push_back(noNum("0xFF200000")); // endereco int -> ok
+    verificarTipos(wr, tabela, erros);
+    assert(!erros.empty());
+    assert(erros[0].mensagem.find("WRITE: o valor deve ser inteiro") != std::string::npos);
+    delete wr;
+    std::cout << "  -> [OK] Tipos: WRITE com valor real (double) dispara erro\n";
+}
+
+inline void testeTipoWriteEnderecoRealErro()
+{
+    std::vector<ErroAnalise> erros;
+    TabelaSimbolos tabela;
+    // (255 16.0 WRITE) -> endereco real (double) tambem deve disparar erro
+    ASTNode *wr = new ASTNode(ASTNodeType::COMANDO_WRITE, 1, "WRITE", "WRITE");
+    wr->filhos.push_back(noNum("255"));  // valor int -> ok
+    wr->filhos.push_back(noNum("16.0")); // endereco real -> invalido
+    verificarTipos(wr, tabela, erros);
+    assert(!erros.empty());
+    assert(erros[0].mensagem.find("WRITE: o endereco deve ser inteiro") != std::string::npos);
+    delete wr;
+    std::cout << "  -> [OK] Tipos: WRITE com endereco real (double) dispara erro\n";
+}
+
+inline void testeTipoWriteIntValido()
+{
+    std::vector<ErroAnalise> erros;
+    TabelaSimbolos tabela;
+    // (1023 0xFF200000 WRITE) -> ambos int -> sem erro (comando void)
+    ASTNode *wr = new ASTNode(ASTNodeType::COMANDO_WRITE, 1, "WRITE", "WRITE");
+    wr->filhos.push_back(noNum("1023"));
+    wr->filhos.push_back(noNum("0xFF200000"));
+    verificarTipos(wr, tabela, erros);
+    assert(erros.empty());
+    delete wr;
+    std::cout << "  -> [OK] Tipos: WRITE com valor e endereco int -> valido\n";
+}
+
 inline void executarTestesEtapa4()
 {
     std::cout << "\nRODANDO TESTES UNITARIOS: VERIFICACAO DE TIPOS\n";
@@ -683,6 +728,9 @@ inline void executarTestesEtapa4()
     testeTipoResHerdaTipoDoHistorico();
     testeTipoResRecuperaBoolErro();
     testeTipoResIndiceNegativoErro();
+    testeTipoWriteValorRealErro();
+    testeTipoWriteEnderecoRealErro();
+    testeTipoWriteIntValido();
     std::cout << "[SUCESSO] Verificacao de Tipos validada!\n";
 }
 

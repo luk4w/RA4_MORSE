@@ -290,10 +290,14 @@ Derivacao parsear(const vector<TokenData> &tokens,
             return;
         }
 
-        // Fallback: empurra todos os Nos do frame pro pai
-        // Cobre casos como subexpressões parciais não capturadas acima
+        // Multiplos operandos sem operador no topo = bloco/sequencia.
+        // Ex: ( (A) (B) (C) ) -> SEQUENCIA(A, B, C), emitida na ordem do codigo.
+        // Permite que o corpo de um WHILE/IFELSE encadeie varios statements
+        // de efeito colateral (WRITE, DELAY, STORE...) numa unica iteracao.
+        ASTNode *seq = new ASTNode(ASTNodeType::SEQUENCIA, frame.front()->linha, "sequencia");
         for (ASTNode *no : frame)
-            framePai.push_back(no);
+            seq->filhos.push_back(no);
+        framePai.push_back(seq);
     };
 
     // Loop principal do parser LL(1)

@@ -573,7 +573,7 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                 ok = true;
             }
         }
-        // ----- VCMP.F64 Dd, Dm -----
+        // ----- VCMP.F64 Dd, Dm  /  VCMP.F64 Dd, #0.0 -----
         else if (M == "VCMP.F64" && ins.ops.size() >= 2)
         {
             int dd = dnum(ins.ops[0]), dm = dnum(ins.ops[1]);
@@ -582,6 +582,14 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                 uint32_t Vd, D, Vm, Mb; splitD(dd, Vd, D); splitD(dm, Vm, Mb);
                 w = (0xEu << 28) | (0x1Du << 23) | (D << 22) | (0x3u << 20) | (0x4u << 16) |
                     (Vd << 12) | (0xBu << 8) | (1u << 6) | (Mb << 5) | Vm;
+                ok = true;
+            }
+            else if (dd >= 0 && limpaOperando(ins.ops[1]).find('#') != std::string::npos)
+            {
+                // VCMPZ: segundo operando = #0.0 -> opc2 = 0101, sem Vm/M
+                uint32_t Vd, D; splitD(dd, Vd, D);
+                w = (0xEu << 28) | (0x1Du << 23) | (D << 22) | (0x3u << 20) | (0x5u << 16) |
+                    (Vd << 12) | (0xBu << 8) | (1u << 6);
                 ok = true;
             }
         }
