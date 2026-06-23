@@ -36,9 +36,23 @@ static string decodificarToken(const TokenData &token, string &valorReal)
         return "PARENTESE_DIR";
     case 6:
         return "OPERADOR_RELACIONAL";
+    case 7:
+        return "OPERADOR_BITWISE";
     default:
         return "";
     }
+}
+
+// Opcodes ARMv7 inteiros para os operadores bitwise
+static string resolverOpcodeBitwise(const string &op)
+{
+    if (op == "AND") return "AND";
+    if (op == "OR")  return "ORR";
+    if (op == "XOR") return "EOR";
+    if (op == "NOT") return "MVN";
+    if (op == "<<")  return "LSL";
+    if (op == ">>")  return "LSR";
+    return op;
 }
 
 // Opcodes ARMv7 VFP para cada operador aritmético
@@ -167,7 +181,7 @@ Derivacao parsear(const vector<TokenData> &tokens,
         ASTNode *ultimo = frame.back();
 
         // IFELSE (condicao then else IFELSE)
-        if (ultimo->tipo == ASTNodeType::COMANDO_IFELSE)
+        if (ultimo->tipo == ASTNodeType::COMANDO_IFELSE && ultimo->filhos.empty())
         {
             if (frame.size() < 4)
                 throw runtime_error("Erro: IFELSE requer 3 operandos");
@@ -185,7 +199,7 @@ Derivacao parsear(const vector<TokenData> &tokens,
         }
 
         // WHILE: (cond corpo WHILE)
-        if (ultimo->tipo == ASTNodeType::COMANDO_WHILE)
+        if (ultimo->tipo == ASTNodeType::COMANDO_WHILE && ultimo->filhos.empty())
         {
             if (frame.size() < 3)
                 throw runtime_error("Erro: WHILE requer 2 operandos");
@@ -199,7 +213,7 @@ Derivacao parsear(const vector<TokenData> &tokens,
         }
 
         // RES: (N RES)
-        if (ultimo->tipo == ASTNodeType::MEMORIA_RES)
+        if (ultimo->tipo == ASTNodeType::MEMORIA_RES && ultimo->filhos.empty())
         {
             if (frame.size() < 2)
                 throw runtime_error("Erro: RES requer 1 operando (N)");
@@ -210,9 +224,12 @@ Derivacao parsear(const vector<TokenData> &tokens,
             return;
         }
 
-        // OPERADOR ou OPERADOR_RELACIONAL binário: (A B op)
-        if (ultimo->tipo == ASTNodeType::INSTRUCAO_VFP ||
-            ultimo->tipo == ASTNodeType::INSTRUCAO_CMP)
+        // OPERADOR / OPERADOR_RELACIONAL / bitwise binario / WRITE: (A B op)
+        if ((ultimo->tipo == ASTNodeType::INSTRUCAO_VFP ||
+             ultimo->tipo == ASTNodeType::INSTRUCAO_CMP ||
+             ultimo->tipo == ASTNodeType::INSTRUCAO_BITWISE ||
+             ultimo->tipo == ASTNodeType::COMANDO_WRITE) &&
+            ultimo->filhos.empty())
         {
             if (frame.size() < 3)
                 throw runtime_error(
@@ -220,8 +237,23 @@ Derivacao parsear(const vector<TokenData> &tokens,
             ASTNode *no = frame.back();
             frame.pop_back();
             size_t n = frame.size();
-            no->filhos.push_back(frame[n - 2]); // A
-            no->filhos.push_back(frame[n - 1]); // B
+            no->filhos.push_back(frame[n - 2]); // A (valor, no WRITE)
+            no->filhos.push_back(frame[n - 1]); // B (endereco, no WRITE)
+            framePai.push_back(no);
+            return;
+        }
+
+        // Unario: (A NOT) / (ms DELAY)
+        if ((ultimo->tipo == ASTNodeType::INSTRUCAO_BITWISE_NOT ||
+             ultimo->tipo == ASTNodeType::COMANDO_DELAY) &&
+            ultimo->filhos.empty())
+        {
+            if (frame.size() < 2)
+                throw runtime_error(
+                    "Erro: operador '" + ultimo->operando + "' requer 1 operando");
+            ASTNode *no = frame.back();
+            frame.pop_back();
+            no->filhos.push_back(frame.back()); // operando unico
             framePai.push_back(no);
             return;
         }
@@ -336,6 +368,38 @@ Derivacao parsear(const vector<TokenData> &tokens,
             {
                 ASTNode *no = new ASTNode(ASTNodeType::INSTRUCAO_CMP, linhaAtual,
                                           valorReal, valorReal);
+                pilhaFrames.top().push_back(no);
+                avancar();
+            }
+            else if (topo == "OPERADOR_BITWISE" || topo == "AND" || topo == "OR" || topo == "XOR")
+            {
+                // Bitwise binario: (A B op)
+                ASTNode *no = new ASTNode(ASTNodeType::INSTRUCAO_BITWISE, linhaAtual,
+                                          resolverOpcodeBitwise(valorReal), valorReal);
+                pilhaFrames.top().push_back(no);
+                avancar();
+            }
+            else if (topo == "NOT")
+            {
+                // Bitwise unario: (A NOT)
+                ASTNode *no = new ASTNode(ASTNodeType::INSTRUCAO_BITWISE_NOT, linhaAtual,
+                                          "MVN", valorReal);
+                pilhaFrames.top().push_back(no);
+                avancar();
+            }
+            else if (topo == "WRITE")
+            {
+                // Comando void binario: (valor endereco WRITE)
+                ASTNode *no = new ASTNode(ASTNodeType::COMANDO_WRITE, linhaAtual,
+                                          "WRITE", "WRITE");
+                pilhaFrames.top().push_back(no);
+                avancar();
+            }
+            else if (topo == "DELAY")
+            {
+                // Comando void unario: (ms DELAY)
+                ASTNode *no = new ASTNode(ASTNodeType::COMANDO_DELAY, linhaAtual,
+                                          "DELAY", "DELAY");
                 pilhaFrames.top().push_back(no);
                 avancar();
             }
