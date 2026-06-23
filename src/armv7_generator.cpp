@@ -417,30 +417,11 @@ void gerarAssembly(ASTNode *arvore, std::string &codigoAssembly)
     int contadorLabel = 0;
     emitirNo(arvore, ss, literais, variaveis, contadorLabel);
 
-    // Trava o ultimo resultado em D15 para os LEDs
-    ss << "    @ Trava o ultimo resultado do historico no D15 para os LEDs\n";
-    ss << "    VLDR.F64 D15, [R10]\n\n";
-
-    // Loop interativo de hardware: LEDs e botoes
-    ss << "_interactive_loop:\n";
-    ss << "    LDR R0, =0xFF200050     @ Endereco dos Botoes\n";
-    ss << "    LDR R1, [R0]            @ Le botoes\n";
-
-    // VMOV transfere os 64 bits de D15 para o par de registradores R2 e R3
-    // R2 recebe a Word Baixa (bits 0-31), R3 recebe a Word Alta (bits 32-63)
-    ss << "    VMOV R2, R3, D15        @ Extrai bits brutos R3=High, R2=Low\n";
-
-    // KEY1 e KEY0 com controle de estado estrito
-    ss << "    MOV R4, #0              @ Default: Apaga todos os LEDs\n";
-    ss << "    TST R1, #1              @ KEY0 pressionado (Bit 0)?\n";
-    ss << "    MOVNE R4, R2            @ Sim, sobrepoe R4 com a Word Baixa\n";
-    ss << "    TST R1, #2              @ KEY1 pressionado (Bit 1)?\n";
-    ss << "    MOVNE R4, R3            @ Sim, sobrepoe R4 com a Word Alta\n";
-
-    // Atualiza os LEDs com o registrador escolhido
-    ss << "    LDR R5, =0xFF200000     @ Endereco dos LEDs\n";
-    ss << "    STR R4, [R5]            @ Atualiza os LEDs\n";
-    ss << "    B _interactive_loop     @ Watchdog do loop\n";
+    // Sem display automatico: para mostrar algo nos LEDs, use WRITE no RPN.
+    // No fim, trava num laco vazio para nao executar lixo de memoria.
+    ss << "    @ Fim do programa\n";
+    ss << "_fim_programa:\n";
+    ss << "    B _fim_programa         @ Halt\n";
 
     codigoAssembly = ss.str();
 }
