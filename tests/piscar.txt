@@ -1,0 +1,27 @@
+(START)
+*{ Pisca-pisca dos 10 LEDs (0xFF200000) com atraso de 500 ms.                 }*
+*{ WRITE e DELAY so funcionam como statements de TOPO (1 por linha): cada um  }*
+*{ consome valores da pilha FPU e nao devolve nada, entao nao podem ficar     }*
+*{ dentro do corpo de um WHILE. Por isso o blink e desenrolado: cada ciclo =  }*
+*{ acende tudo (1023) -> espera -> apaga (0) -> espera.                        }*
+
+*{ ciclo 1 }*
+(1023 0xFF200000 WRITE)
+(500 DELAY)
+(0 0xFF200000 WRITE)
+(500 DELAY)
+
+*{ ciclo 2 }*
+(1023 0xFF200000 WRITE)
+(500 DELAY)
+(0 0xFF200000 WRITE)
+(500 DELAY)
+
+*{ ciclo 3 }*
+(1023 0xFF200000 WRITE)
+(500 DELAY)
+(0 0xFF200000 WRITE)
+(500 DELAY)
+
+*{ ao final o programa trava no laco _fim_programa (B _fim_programa) }*
+(END)
