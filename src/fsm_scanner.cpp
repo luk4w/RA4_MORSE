@@ -68,6 +68,27 @@ void estadoNumero(const std::string &linha, size_t &pos, std::vector<std::string
     std::string buffer = "";
     bool flag_ponto_decimal = false;
 
+    // Literal hexadecimal (0x...): usado para enderecos de registradores em WRITE.
+    if (pos + 1 < linha.length() && linha[pos] == '0' && (linha[pos + 1] == 'x' || linha[pos + 1] == 'X'))
+    {
+        buffer += linha[pos];
+        buffer += linha[pos + 1];
+        pos += 2;
+        bool temDigito = false;
+        while (pos < linha.length())
+        {
+            char c = linha[pos];
+            if (isxdigit((unsigned char)c)) { buffer += c; pos++; temDigito = true; }
+            else if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == ')') break;
+            else
+                throw std::runtime_error("Numero hexadecimal malformado na linha " + std::to_string(numeroLinha) + ": " + buffer + c + "\n");
+        }
+        if (!temDigito)
+            throw std::runtime_error("Numero hexadecimal malformado na linha " + std::to_string(numeroLinha) + ": " + buffer + "\n");
+        tokens.push_back(std::to_string(static_cast<int>(TipoToken::NUMERO)) + "," + std::to_string(numeroLinha) + "," + buffer);
+        return;
+    }
+
     while (pos < linha.length())
     {
         char c = linha[pos];
@@ -115,6 +136,13 @@ void estadoOperador(const std::string &linha, size_t &pos, std::vector<std::stri
         if (op2 == "==" || op2 == "!=" || op2 == "<=" || op2 == ">=")
         {
             tokens.push_back(std::to_string(static_cast<int>(TipoToken::OPERADOR_RELACIONAL)) + "," + std::to_string(numeroLinha) + "," + op2);
+            pos += 2;
+            return;
+        }
+        // Operadores bitwise de deslocamento (<<, >>)
+        if (op2 == "<<" || op2 == ">>")
+        {
+            tokens.push_back(std::to_string(static_cast<int>(TipoToken::OPERADOR_BITWISE)) + "," + std::to_string(numeroLinha) + "," + op2);
             pos += 2;
             return;
         }

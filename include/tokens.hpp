@@ -14,7 +14,8 @@ enum class TipoToken
     PALAVRA_RESERVADA = 3,
     PARENTESE_ESQ = 4,
     PARENTESE_DIR = 5,
-    OPERADOR_RELACIONAL = 6
+    OPERADOR_RELACIONAL = 6,
+    OPERADOR_BITWISE = 7 // shifts << e >>
 };
 
 // Estrutura para facilitar a manipulação posterior
@@ -46,6 +47,12 @@ inline const std::unordered_set<std::string> PALAVRAS_RESERVADAS = {
     "WHILE",
     "TRUE",
     "FALSE",
+    "WRITE",
+    "DELAY",
+    "AND", // (A B AND) bitwise
+    "OR",  // (A B OR)  bitwise
+    "XOR", // (A B XOR) bitwise
+    "NOT", // (A NOT)   bitwise unario
 };
 
 inline bool isPalavraReservada(const std::string &s)
