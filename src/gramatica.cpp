@@ -27,7 +27,10 @@ bool isTerminal(const string &simbolo)
             simbolo == "IDENTIFICADOR" || simbolo == "OPERADOR" ||
             simbolo == "OPERADOR_RELACIONAL" || simbolo == "WHILE" ||
             simbolo == "IFELSE" || simbolo == "RES" ||
-            simbolo == "TRUE" || simbolo == "FALSE");
+            simbolo == "TRUE" || simbolo == "FALSE" ||
+            simbolo == "OPERADOR_BITWISE" || simbolo == "AND" ||
+            simbolo == "OR" || simbolo == "XOR" || simbolo == "NOT" ||
+            simbolo == "WRITE" || simbolo == "DELAY");
 }
 
 // Calcula os conjuntos FIRST algoritmicamente
@@ -204,15 +207,22 @@ void construirGramatica()
     gramatica["corpo_expressao"] = {
         {"operando", "complemento_expressao"}};
 
+    // Unarios (NOT, DELAY) aplicam-se a UM operando ja empilhado: (A NOT), (ms DELAY)
     gramatica["complemento_expressao"] = {
         {"operando", "resto_complemento"},
+        {"NOT"},
+        {"DELAY"},
         {"EPSILON"}};
 
     gramatica["resto_complemento"] = {
         {"operacao"},
         {"EPSILON"}};
 
-    gramatica["operacao"] = {{"OPERADOR"}, {"OPERADOR_RELACIONAL"}, {"WHILE"}, {"operando", "IFELSE"}};
+    // Binarios bitwise (AND/OR/XOR e shifts via OPERADOR_BITWISE) e WRITE seguem a
+    // mesma forma de (A B op): dois operandos antes da palavra/operador.
+    gramatica["operacao"] = {{"OPERADOR"}, {"OPERADOR_RELACIONAL"}, {"OPERADOR_BITWISE"},
+                             {"AND"}, {"OR"}, {"XOR"}, {"WRITE"},
+                             {"WHILE"}, {"operando", "IFELSE"}};
 
     auto first = calcularFirst();
     auto follow = calcularFollow();

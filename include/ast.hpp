@@ -19,7 +19,11 @@ enum class ASTNodeType
     BOOL_LITERAL,   // Literal TRUE ou FALSE
     COMANDO_WHILE,
     COMANDO_IFELSE,
-    INSTRUCAO_CMP
+    INSTRUCAO_CMP,
+    INSTRUCAO_BITWISE,     // binario inteiro: AND, OR, XOR, << (LSL), >> (LSR)
+    INSTRUCAO_BITWISE_NOT, // unario inteiro: NOT (MVN)
+    COMANDO_WRITE,         // (valor endereco WRITE) - escreve em registrador (void)
+    COMANDO_DELAY          // (ms DELAY) - espera via A9 Private Timer (void)
 };
 
 enum class TipoDado

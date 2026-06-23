@@ -33,6 +33,10 @@ inline std::string nodeTypeToString(ASTNodeType tipo) {
         case ASTNodeType::COMANDO_WHILE: return "COMANDO_WHILE";
         case ASTNodeType::COMANDO_IFELSE: return "COMANDO_IFELSE";
         case ASTNodeType::INSTRUCAO_CMP: return "INSTRUCAO_CMP";
+        case ASTNodeType::INSTRUCAO_BITWISE: return "INSTRUCAO_BITWISE";
+        case ASTNodeType::INSTRUCAO_BITWISE_NOT: return "INSTRUCAO_BITWISE_NOT";
+        case ASTNodeType::COMANDO_WRITE: return "COMANDO_WRITE";
+        case ASTNodeType::COMANDO_DELAY: return "COMANDO_DELAY";
         default: return "UNKNOWN";
     }
 }
