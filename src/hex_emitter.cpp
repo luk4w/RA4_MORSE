@@ -282,11 +282,25 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
             Instr ins; ins.raw = linha;
             splitInstr(linha, ins.mnem, ins.ops);
             // associa labels pendentes a esta instrucao
-            std::string lbl = codeLabelsPend.empty() ? "" : codeLabelsPend.front();
             for (const std::string &l : codeLabelsPend)
                 textEvents.push_back({l, Instr{}}); // marcador de label (instr vazia)
             codeLabelsPend.clear();
-            textEvents.push_back({"", ins});
+
+            // LDR Rd, =x  ->  MOVW_LIT + MOVT_LIT
+            // carrega a constante ou o endereco do label direto em 2 instrucoes, sem literal pool
+            // Assim some o limite de alcance PC-relativo de 4 KB que furava o hex de programas longos
+            if (upper(ins.mnem) == "LDR" && ins.ops.size() >= 2 &&
+                !trim(ins.ops[1]).empty() && trim(ins.ops[1])[0] == '=')
+            {
+                Instr lo = ins; lo.mnem = "MOVW_LIT";
+                Instr hi = ins; hi.mnem = "MOVT_LIT";
+                textEvents.push_back({"", lo});
+                textEvents.push_back({"", hi});
+            }
+            else
+            {
+                textEvents.push_back({"", ins});
+            }
         }
     }
 
@@ -305,32 +319,12 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
     }
     uint32_t textEnd = addr;
 
-    // ----- literal pool: coleta valores distintos de "LDR Rd,=valor" -----
-    std::unordered_map<std::string, uint32_t> poolAddr; // "=valor" -> endereco
-    std::vector<std::string> poolOrder;
-    for (const Instr &ins : code)
-    {
-        if (upper(ins.mnem).rfind("LDR", 0) == 0 && ins.ops.size() >= 2)
-        {
-            std::string v = trim(ins.ops[1]);
-            if (!v.empty() && v[0] == '=')
-            {
-                std::string key = v.substr(1);
-                if (poolAddr.find(key) == poolAddr.end())
-                {
-                    poolAddr[key] = 0; // resolvido abaixo
-                    poolOrder.push_back(key);
-                }
-            }
-        }
-    }
-    uint32_t poolBase = textEnd; // ja alinhado a 4
-    for (size_t i = 0; i < poolOrder.size(); i++)
-        poolAddr[poolOrder[i]] = poolBase + (uint32_t)i * 4;
-    uint32_t poolEnd = poolBase + (uint32_t)poolOrder.size() * 4;
+    // Sem literal pool
+    // todo "LDR Rd, =x" virou MOVW_LIT/MOVT_LIT na PASSADA A,
+    // entao o .data vem logo apos o .text.
 
     // ----- PASSADA C: enderecos do .data (alinhado a 8) -----
-    uint32_t dataBase = (poolEnd + 7u) & ~7u;
+    uint32_t dataBase = (textEnd + 7u) & ~7u;
     uint32_t da = dataBase;
     for (DataItem &it : data)
     {
@@ -339,17 +333,6 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
         else if (it.kind == DataItem::DOUBLE) { it.addr = da; da += 8; }
     }
 
-    // resolve os valores do literal pool (=label -> endereco; =num -> numero)
-    std::unordered_map<std::string, uint32_t> poolValue;
-    for (const std::string &key : poolOrder)
-    {
-        if (ehNumero(key)) poolValue[key] = parseNum(key);
-        else
-        {
-            auto f = labelAddr.find(key);
-            poolValue[key] = (f != labelAddr.end()) ? f->second : 0u;
-        }
-    }
 
     // ----- PASSADA D: codificacao -----
     std::stringstream out;
@@ -383,19 +366,23 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                 ok = true;
             }
         }
-        // ----- LDR Rd, =valor  (literal pool) -----
-        else if (M == "LDR" && ins.ops.size() >= 2 && !ins.ops[1].empty() &&
-                 trim(ins.ops[1])[0] == '=')
+        // ----- MOVW_LIT / MOVT_LIT Rd, =x  (expansao de "LDR Rd, =x") -----
+        // Carrega a metade baixa (MOVW) ou alta (MOVT) do valor de 32 bits
+        // numero literal -> o proprio numero; label -> seu endereco.
+        // Sem pool.
+        else if (M == "MOVW_LIT" || M == "MOVT_LIT")
         {
-            int rt = reg(ins.ops[0]);
-            std::string key = trim(ins.ops[1]).substr(1);
-            uint32_t slot = poolAddr[key];
-            int32_t off = (int32_t)slot - (int32_t)(ins.addr + 8);
-            if (rt >= 0 && off >= 0 && off < 4096)
+            int rd = reg(ins.ops[0]);
+            std::string key = trim(ins.ops[1]).substr(1); // remove '='
+            uint32_t val;
+            if (ehNumero(key)) val = parseNum(key);
+            else { auto f = labelAddr.find(key); val = (f != labelAddr.end()) ? f->second : 0u; }
+            uint32_t imm16 = (M == "MOVW_LIT") ? (val & 0xFFFFu) : ((val >> 16) & 0xFFFFu);
+            if (rd >= 0)
             {
-                // LDR (literal), P=1,U=1,W=0, Rn=1111
-                w = (0xEu << 28) | (0x59u << 20) | (0xFu << 16) |
-                    ((uint32_t)rt << 12) | ((uint32_t)off & 0xFFF);
+                uint32_t opc = (M == "MOVW_LIT") ? 0x30u : 0x34u; // MOVW / MOVT (bits 27-20)
+                w = (0xEu << 28) | (opc << 20) | (((imm16 >> 12) & 0xFu) << 16) |
+                    ((uint32_t)rd << 12) | (imm16 & 0xFFFu);
                 ok = true;
             }
         }
@@ -671,17 +658,6 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
             naoSuportadas++;
             emitLine(ins.addr, 0x00000000u, ins.raw + "   [PENDENTE - fase 2]");
             putWord(ins.addr, 0x00000000u);
-        }
-    }
-
-    // ----- literal pool -----
-    if (!poolOrder.empty())
-    {
-        out << "; ==== literal pool ====\n";
-        for (const std::string &key : poolOrder)
-        {
-            emitLine(poolAddr[key], poolValue[key], "=" + key);
-            putWord(poolAddr[key], poolValue[key]);
         }
     }
 
