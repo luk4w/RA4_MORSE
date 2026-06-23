@@ -5,27 +5,153 @@
   "opcode": "programa",
   "filhos": [
     {
-      "tipo": "COMANDO_WRITE",
+      "tipo": "MEMORIA_STORE",
       "tipoDado": "DESCONHECIDO",
       "linha": 2,
-      "operando": "WRITE",
-      "opcode": "WRITE",
+      "operando": "ESTADO",
+      "opcode": "VSTR.F64",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "DESCONHECIDO",
           "linha": 2,
-          "operando": "1",
+          "operando": "0",
           "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WHILE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 3,
+      "operando": "WHILE",
+      "opcode": "WHILE",
+      "filhos": [
+        {
+          "tipo": "BOOL_LITERAL",
+          "tipoDado": "DESCONHECIDO",
+          "linha": 3,
+          "operando": "TRUE",
+          "opcode": "TRUE",
           "filhos": []
         },
         {
-          "tipo": "NUMERO_LITERAL",
+          "tipo": "SEQUENCIA",
           "tipoDado": "DESCONHECIDO",
-          "linha": 2,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
+          "linha": 3,
+          "opcode": "sequencia",
+          "filhos": [
+            {
+              "tipo": "SEQUENCIA",
+              "tipoDado": "DESCONHECIDO",
+              "linha": 3,
+              "opcode": "sequencia",
+              "filhos": [
+                {
+                  "tipo": "COMANDO_WRITE",
+                  "tipoDado": "DESCONHECIDO",
+                  "linha": 3,
+                  "operando": "WRITE",
+                  "opcode": "WRITE",
+                  "filhos": [
+                    {
+                      "tipo": "MEMORIA_LOAD",
+                      "tipoDado": "DESCONHECIDO",
+                      "linha": 3,
+                      "operando": "ESTADO",
+                      "opcode": "VLDR.F64",
+                      "filhos": []
+                    },
+                    {
+                      "tipo": "NUMERO_LITERAL",
+                      "tipoDado": "DESCONHECIDO",
+                      "linha": 3,
+                      "operando": "0xFF200000",
+                      "opcode": "NUMERO",
+                      "filhos": []
+                    }
+                  ]
+                },
+                {
+                  "tipo": "COMANDO_DELAY",
+                  "tipoDado": "DESCONHECIDO",
+                  "linha": 3,
+                  "operando": "DELAY",
+                  "opcode": "DELAY",
+                  "filhos": [
+                    {
+                      "tipo": "NUMERO_LITERAL",
+                      "tipoDado": "DESCONHECIDO",
+                      "linha": 3,
+                      "operando": "500",
+                      "opcode": "NUMERO",
+                      "filhos": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tipo": "MEMORIA_STORE",
+              "tipoDado": "DESCONHECIDO",
+              "linha": 3,
+              "operando": "ESTADO",
+              "opcode": "VSTR.F64",
+              "filhos": [
+                {
+                  "tipo": "COMANDO_IFELSE",
+                  "tipoDado": "DESCONHECIDO",
+                  "linha": 3,
+                  "operando": "IFELSE",
+                  "opcode": "IFELSE",
+                  "filhos": [
+                    {
+                      "tipo": "INSTRUCAO_CMP",
+                      "tipoDado": "DESCONHECIDO",
+                      "linha": 3,
+                      "operando": "==",
+                      "opcode": "==",
+                      "filhos": [
+                        {
+                          "tipo": "MEMORIA_LOAD",
+                          "tipoDado": "DESCONHECIDO",
+                          "linha": 3,
+                          "operando": "ESTADO",
+                          "opcode": "VLDR.F64",
+                          "filhos": []
+                        },
+                        {
+                          "tipo": "NUMERO_LITERAL",
+                          "tipoDado": "DESCONHECIDO",
+                          "linha": 3,
+                          "operando": "0",
+                          "opcode": "NUMERO",
+                          "filhos": []
+                        }
+                      ]
+                    },
+                    {
+                      "tipo": "NUMERO_LITERAL",
+                      "tipoDado": "DESCONHECIDO",
+                      "linha": 3,
+                      "operando": "1023",
+                      "opcode": "NUMERO",
+                      "filhos": []
+                    },
+                    {
+                      "tipo": "NUMERO_LITERAL",
+                      "tipoDado": "DESCONHECIDO",
+                      "linha": 3,
+                      "operando": "0",
+                      "opcode": "NUMERO",
+                      "filhos": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }
