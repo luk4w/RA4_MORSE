@@ -82,6 +82,7 @@ Estática e fortemente tipada. **Sem coerção** implícita entre `int` e `real`
 | :--- | :--- | :--- |
 | Condicional | `( (cond) (verdadeiro) (falso) IFELSE )` | `cond` `bool`; ramos do mesmo tipo. |
 | Laço | `( (cond) (corpo) WHILE )` | avalia `cond` antes de cada iteração. |
+| Sequência/bloco | `( (A) (B) )` | executa `A`, depois `B`; permite vários comandos no corpo de um `WHILE`/`IFELSE`. A justaposição é **2 a 2** (limite LL(1)); para 3+ comandos, aninhe em pares: `( (A B) C )`. |
 | Escrita memória | `(V MEM)` | define **e** inicializa a variável. |
 | Leitura memória | `(MEM)` | erro semântico se nunca definida. |
 | Histórico | `(N RES)` | resultado `N` expressões atrás (`0` = último). |
@@ -94,7 +95,7 @@ Estática e fortemente tipada. **Sem coerção** implícita entre `int` e `real`
 (10 3 +)        *{ ok: int }*       (10 2.5 +)   *{ erro: mistura int/real }*
 ```
 
-Comentários: `*{ ... }*`. Veja `tests/teste1.txt`..`teste4.txt` (válidos) e `tests/teste_erro_*.txt` (erros).
+Comentários: `*{ ... }*`. Veja `tests/teste1.txt`..`teste4.txt` (válidos) e `tests/teste_erro_*.txt` (erros). Exemplos de I/O: `tests/mello_morse.txt` (nome "MELLO" em código Morse no LED) e `tests/piscar.txt` (pisca-pisca infinito com `WHILE` + `WRITE` + `DELAY`).
 
 ## Gramática LL(1)
 
@@ -132,6 +133,7 @@ Cada construção gera um nó na AST (`ASTNode`) e recebe `tipoDado` em `verific
 | `(A B rel)` | `OPERADOR_RELACIONAL` | `INSTRUCAO_CMP` | `BOOL` |
 | `(C T E IFELSE)` | `operando IFELSE` | `COMANDO_IFELSE` | tipo comum dos ramos; `C` é `BOOL` |
 | `(C B WHILE)` | `WHILE` | `COMANDO_WHILE` | tipo do corpo; `C` é `BOOL` |
+| `(A B)` justaposto | `operando operando` (`resto_complemento → ε`) | `SEQUENCIA` | `?` (void); emite os filhos em ordem |
 
 ### FIRST / FOLLOW
 
