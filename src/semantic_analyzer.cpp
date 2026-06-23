@@ -531,6 +531,52 @@ static TipoDado verificarTiposImpl(ASTNode *raiz, TabelaSimbolos &tabela,
         return raiz->tipoDado;
     }
 
+    case ASTNodeType::INSTRUCAO_BITWISE:
+    {
+        // Bitwise binario (AND/OR/XOR/<</>>): operandos inteiros, resultado inteiro
+        TipoDado a = raiz->filhos.size() > 0 ? verificarTiposImpl(raiz->filhos[0], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        TipoDado b = raiz->filhos.size() > 1 ? verificarTiposImpl(raiz->filhos[1], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        if (a != TipoDado::INT && a != TipoDado::DESCONHECIDO)
+            erroTipo(erros, raiz->linha, "operador bitwise '" + raiz->operando + "' exige inteiros, encontrado " + nomeTipoDado(a));
+        if (b != TipoDado::INT && b != TipoDado::DESCONHECIDO)
+            erroTipo(erros, raiz->linha, "operador bitwise '" + raiz->operando + "' exige inteiros, encontrado " + nomeTipoDado(b));
+        raiz->tipoDado = TipoDado::INT;
+        return TipoDado::INT;
+    }
+
+    case ASTNodeType::INSTRUCAO_BITWISE_NOT:
+    {
+        // (A NOT): operando inteiro, resultado inteiro
+        TipoDado a = raiz->filhos.size() > 0 ? verificarTiposImpl(raiz->filhos[0], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        if (a != TipoDado::INT && a != TipoDado::DESCONHECIDO)
+            erroTipo(erros, raiz->linha, "operador 'NOT' exige inteiro, encontrado " + nomeTipoDado(a));
+        raiz->tipoDado = TipoDado::INT;
+        return TipoDado::INT;
+    }
+
+    case ASTNodeType::COMANDO_WRITE:
+    {
+        // (valor endereco WRITE): ambos inteiros; comando sem valor (void)
+        TipoDado v = raiz->filhos.size() > 0 ? verificarTiposImpl(raiz->filhos[0], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        TipoDado e = raiz->filhos.size() > 1 ? verificarTiposImpl(raiz->filhos[1], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        if (v != TipoDado::INT && v != TipoDado::DESCONHECIDO)
+            erroTipo(erros, raiz->linha, "WRITE: o valor deve ser inteiro, encontrado " + nomeTipoDado(v));
+        if (e != TipoDado::INT && e != TipoDado::DESCONHECIDO)
+            erroTipo(erros, raiz->linha, "WRITE: o endereco deve ser inteiro, encontrado " + nomeTipoDado(e));
+        raiz->tipoDado = TipoDado::DESCONHECIDO; // void
+        return TipoDado::DESCONHECIDO;
+    }
+
+    case ASTNodeType::COMANDO_DELAY:
+    {
+        // (ms DELAY): inteiro; comando sem valor (void)
+        TipoDado ms = raiz->filhos.size() > 0 ? verificarTiposImpl(raiz->filhos[0], tabela, erros, historico) : TipoDado::DESCONHECIDO;
+        if (ms != TipoDado::INT && ms != TipoDado::DESCONHECIDO)
+            erroTipo(erros, raiz->linha, "DELAY: o tempo (ms) deve ser inteiro, encontrado " + nomeTipoDado(ms));
+        raiz->tipoDado = TipoDado::DESCONHECIDO; // void
+        return TipoDado::DESCONHECIDO;
+    }
+
     default:
         raiz->tipoDado = TipoDado::DESCONHECIDO;
         return TipoDado::DESCONHECIDO;
