@@ -503,18 +503,6 @@ pow_end_3:
     SUB R10, R10, #8        @ Avanca o ponteiro da pilha de historico
     VSTR.F64 D0, [R10]      @ Grava na RAM
 
-    @ Trava o ultimo resultado do historico no D15 para os LEDs
-    VLDR.F64 D15, [R10]
-
-_interactive_loop:
-    LDR R0, =0xFF200050     @ Endereco dos Botoes
-    LDR R1, [R0]            @ Le botoes
-    VMOV R2, R3, D15        @ Extrai bits brutos R3=High, R2=Low
-    MOV R4, #0              @ Default: Apaga todos os LEDs
-    TST R1, #1              @ KEY0 pressionado (Bit 0)?
-    MOVNE R4, R2            @ Sim, sobrepoe R4 com a Word Baixa
-    TST R1, #2              @ KEY1 pressionado (Bit 1)?
-    MOVNE R4, R3            @ Sim, sobrepoe R4 com a Word Alta
-    LDR R5, =0xFF200000     @ Endereco dos LEDs
-    STR R4, [R5]            @ Atualiza os LEDs
-    B _interactive_loop     @ Watchdog do loop
+    @ Fim do programa (use WRITE no RPN para acionar os LEDs)
+_fim_programa:
+    B _fim_programa         @ Halt
