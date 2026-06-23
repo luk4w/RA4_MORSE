@@ -5,9 +5,11 @@ PUCPR - Linguagens Formais e Compiladores - C++23.
 
 Compilador para uma linguagem em **notação polonesa reversa (RPN)**. Pipeline completo:
 
-**léxico (FSM)** → **sintático LL(1)** → **semântico (tipos)** → **gerador de Assembly ARMv7**.
+**léxico (FSM)** → **sintático LL(1)** → **semântico (tipos)** → **Assembly ARMv7** → **hexadecimal (código de máquina)**.
 
-O Assembly (`saida.s`) é gerado para o processador **ARMv7 (v16.1)** simulado no [CPUlator DE1-SoC](https://cpulator.01xz.net/?sys=arm-de1soc). Os valores são tratados como `double` IEEE 754 (64 bits) na FPU.
+O Assembly (`saida.s`) e o **hexadecimal** (`saida.hex`) são gerados para o processador **ARMv7 (v16.1)** simulado no [CPUlator DE1-SoC](https://cpulator.01xz.net/?sys=arm-de1soc). Os valores são tratados como `double` IEEE 754 (64 bits) na FPU.
+
+O hexadecimal é produzido por um **montador interno de duas passadas** (`src/hex_emitter.cpp`): ele converte cada instrução do Assembly no seu opcode ARMv7 de 32 bits (resolvendo labels, branches, *literal pool* e o `.data`), **sem depender de toolchain externa**. As codificações foram validadas byte a byte contra o `arm-none-eabi-as`.
 
 ## Build & Execução
 
@@ -34,10 +36,20 @@ Os artefatos são escritos **no diretório de onde o programa é executado**.
 | `ast_inicial.json` | sem erros | AST **antes** da semântica (todos os nós `DESCONHECIDO`). |
 | `ast_atribuida.json` | sem erros | AST **atribuída** (com `tipoDado` e `linha` por nó). |
 | `saida.s` | sem erros | Assembly ARMv7. |
+| `saida.hex` | sem erros | **Código de máquina**: uma palavra de 32 bits (hex) por linha, little-endian, contíguo a partir de `0x0`. |
 | `TABELA_SIMBOLOS.md` | sem erros | Variáveis, tipos, linha de definição e usos. |
 | `ERROS_SEMANTICOS.md` | sempre | Relatório de erros (vazio se válido). |
 
-Havendo **qualquer** erro (léxico/sintático/semântico), o programa imprime o relatório, **não gera Assembly** e sai com código `1`.
+Havendo **qualquer** erro (léxico/sintático/semântico), o programa imprime o relatório, **não gera Assembly nem hexadecimal** e sai com código `1`.
+
+### Carregar no CPUlator
+
+O [CPUlator DE1-SoC](https://cpulator.01xz.net/?sys=arm-de1soc) tem duas opções:
+
+- **Assembly** (`saida.s`): cole no editor e clique em *Compile and Load*.
+- **Hexadecimal** (`saida.hex`): menu **Load memory from file** → selecione `saida.hex` e configure **endereço inicial `0`**, **tamanho do elemento `4 bytes`** e **base `hexadecimal`**. O *Load memory* não altera o PC, então garanta **PC = `0`** antes de executar.
+
+Em ambos, o último resultado calculado fica travado em `D15`; **KEY0** mostra a *Word Baixa* e **KEY1** a *Word Alta* nos 32 LEDs.
 
 ## Linguagem (RPN)
 
