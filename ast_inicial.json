@@ -593,12 +593,29 @@
       ]
     },
     {
-      "tipo": "MEMORIA_LOAD",
+      "tipo": "COMANDO_WRITE",
       "tipoDado": "DESCONHECIDO",
       "linha": 22,
-      "operando": "FINAL",
-      "opcode": "VLDR.F64",
-      "filhos": []
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "MEMORIA_LOAD",
+          "tipoDado": "DESCONHECIDO",
+          "linha": 22,
+          "operando": "FINAL",
+          "opcode": "VLDR.F64",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "DESCONHECIDO",
+          "linha": 22,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
     }
   ]
 }

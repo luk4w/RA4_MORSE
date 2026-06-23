@@ -413,10 +413,11 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                 ok = true;
             }
         }
-        // ----- MOV Rd,#imm  /  MOV(NE) Rd,Rm -----
-        else if (M == "MOV" || M == "MOVNE" || M == "MOVEQ")
+        // ----- MOV / MVN Rd,#imm  /  MOV(NE)/MVN Rd,Rm -----
+        else if (M == "MOV" || M == "MOVNE" || M == "MOVEQ" || M == "MVN")
         {
-            std::string suf = (M == "MOV") ? "" : M.substr(3);
+            std::string suf = (M == "MOV" || M == "MVN") ? "" : M.substr(3);
+            uint32_t opc = (M.rfind("MVN", 0) == 0) ? 0xFu : 0xDu; // MVN=1111, MOV=1101
             int rd = reg(ins.ops[0]);
             if (rd >= 0 && ins.ops.size() >= 2)
             {
@@ -425,8 +426,7 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                     uint32_t imm12;
                     if (encodeModImm(parseNum(ins.ops[1]), imm12))
                     {
-                        // DP imm, opcode MOV=1101, S=0
-                        w = (cond(suf) << 28) | (1u << 25) | (0xDu << 21) |
+                        w = (cond(suf) << 28) | (1u << 25) | (opc << 21) |
                             ((uint32_t)rd << 12) | imm12;
                         ok = true;
                     }
@@ -436,30 +436,49 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                     int rm = reg(ins.ops[1]);
                     if (rm >= 0)
                     {
-                        // DP reg, opcode MOV=1101, S=0, shift 0
-                        w = (cond(suf) << 28) | (0xDu << 21) |
+                        w = (cond(suf) << 28) | (opc << 21) |
                             ((uint32_t)rd << 12) | (uint32_t)rm;
                         ok = true;
                     }
                 }
             }
         }
-        // ----- LSL Rd, Rm, #sh  (MOV com shift) -----
-        else if (M == "LSL" && ins.ops.size() >= 3)
+        // ----- LSL / LSR Rd, Rm, Rs ou #sh -----
+        else if ((M == "LSL" || M == "LSR") && ins.ops.size() >= 3)
         {
             int rd = reg(ins.ops[0]), rm = reg(ins.ops[1]);
-            uint32_t sh = parseNum(ins.ops[2]) & 0x1F;
+            uint32_t type = (M == "LSL") ? 0u : 1u; // LSL=0, LSR=1 (bits 6-5)
             if (rd >= 0 && rm >= 0)
             {
-                w = (0xEu << 28) | (0xDu << 21) | ((uint32_t)rd << 12) |
-                    (sh << 7) | (0u << 5) | (uint32_t)rm;
-                ok = true;
+                if (ehNumero(ins.ops[2]))
+                {
+                    uint32_t sh = parseNum(ins.ops[2]) & 0x1F;
+                    w = (0xEu << 28) | (0xDu << 21) | ((uint32_t)rd << 12) |
+                        (sh << 7) | (type << 5) | (uint32_t)rm;
+                    ok = true;
+                }
+                else
+                {
+                    int rs = reg(ins.ops[2]);
+                    if (rs >= 0)
+                    {
+                        w = (0xEu << 28) | (0xDu << 21) | ((uint32_t)rd << 12) |
+                            ((uint32_t)rs << 8) | (type << 5) | (1u << 4) | (uint32_t)rm;
+                        ok = true;
+                    }
+                }
             }
         }
-        // ----- ADD / SUB  (reg ou imm) -----
-        else if (M == "ADD" || M == "SUB")
+        // ----- ADD / SUB / AND / ORR / EOR  (reg ou imm) -----
+        else if (M == "ADD" || M == "SUB" || M == "AND" || M == "ORR" || M == "EOR")
         {
-            uint32_t opc = (M == "ADD") ? 0x4u : 0x2u; // ADD=0100, SUB=0010
+            uint32_t opc = 0;
+            if (M == "AND") opc = 0x0u;
+            else if (M == "EOR") opc = 0x1u;
+            else if (M == "SUB") opc = 0x2u;
+            else if (M == "ADD") opc = 0x4u;
+            else if (M == "ORR") opc = 0xCu;
+            
             int rd = reg(ins.ops[0]), rn = reg(ins.ops[1]);
             if (rd >= 0 && rn >= 0 && ins.ops.size() >= 3)
             {
@@ -483,6 +502,16 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                         ok = true;
                     }
                 }
+            }
+        }
+        // ----- MUL Rd, Rm, Rs -----
+        else if (M == "MUL" && ins.ops.size() >= 3)
+        {
+            int rd = reg(ins.ops[0]), rm = reg(ins.ops[1]), rs = reg(ins.ops[2]);
+            if (rd >= 0 && rm >= 0 && rs >= 0)
+            {
+                w = (0xEu << 28) | ((uint32_t)rd << 16) | ((uint32_t)rs << 8) | (9u << 4) | (uint32_t)rm;
+                ok = true;
             }
         }
         // ----- CMP / TST  Rn, #imm  (S=1, Rd=0) -----
@@ -562,9 +591,10 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
             w = 0xEEF1FA10u;
             ok = true;
         }
-        // ----- VMOV: Rt,Sn (2 ops)  ou  Rt,Rt2,Dm (3 ops) -----
+        // ----- VMOV: Rt,Sn (2 ops)  ou  Sn,Rt (2 ops) -----
         else if (M == "VMOV" && ins.ops.size() == 2)
         {
+            // Tenta Rt, Sn
             int rt = reg(ins.ops[0]), sn = snum(ins.ops[1]);
             if (rt >= 0 && sn >= 0)
             {
@@ -572,6 +602,18 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                 w = (0xEu << 28) | (0xEu << 24) | (1u << 20) | (Vn << 16) |
                     ((uint32_t)rt << 12) | (0xAu << 8) | (Nb << 7) | (1u << 4);
                 ok = true;
+            }
+            else
+            {
+                // Tenta Sn, Rt
+                sn = snum(ins.ops[0]); rt = reg(ins.ops[1]);
+                if (sn >= 0 && rt >= 0)
+                {
+                    uint32_t Vn, Nb; splitS(sn, Vn, Nb);
+                    w = (0xEu << 28) | (0xEu << 24) | (0u << 20) | (Vn << 16) |
+                        ((uint32_t)rt << 12) | (0xAu << 8) | (Nb << 7) | (1u << 4);
+                    ok = true;
+                }
             }
         }
         else if (M == "VMOV" && ins.ops.size() >= 3)
@@ -585,15 +627,16 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
                 ok = true;
             }
         }
-        // ----- VCVT.S32.F64 Sd, Dm  (double -> int, round to zero) -----
-        else if (M == "VCVT.S32.F64" && ins.ops.size() >= 2)
+        // ----- VCVT.S32.F64 / VCVT.U32.F64 Sd, Dm  (double -> int, round to zero) -----
+        else if ((M == "VCVT.S32.F64" || M == "VCVT.U32.F64") && ins.ops.size() >= 2)
         {
             int sd = snum(ins.ops[0]), dm = dnum(ins.ops[1]);
             if (sd >= 0 && dm >= 0)
             {
                 uint32_t Vd, D, Vm, Mb; splitS(sd, Vd, D); splitD(dm, Vm, Mb);
+                uint32_t opc = (M == "VCVT.S32.F64") ? 0x5u : 0x4u; // S32=101, U32=100 (bits 18-16)
                 w = (0xEu << 28) | (0x1Du << 23) | (D << 22) | (0x3u << 20) | (1u << 19) |
-                    (0x5u << 16) | (Vd << 12) | (0xBu << 8) | (1u << 7) | (1u << 6) | (Mb << 5) | Vm;
+                    (opc << 16) | (Vd << 12) | (0xBu << 8) | (1u << 7) | (1u << 6) | (Mb << 5) | Vm;
                 ok = true;
             }
         }

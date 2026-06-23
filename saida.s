@@ -5,22 +5,23 @@
     STACK_RES_TOP:              @ Topo da pilha
     LIT_ONE_POW: .double 1.0    @ Constante 1 para o acumulador da potenciacao
     LIT_12: .double 0.0
-    LIT_16: .double 1
+    LIT_18: .double 4280287232.000000
+    LIT_16: .double 1.0
     LIT_11: .double 1.0
-    LIT_13: .double 100
-    LIT_6: .double 2
+    LIT_13: .double 100.0
+    LIT_6: .double 2.0
     LIT_8: .double 2.0
-    LIT_2: .double 20
-    LIT_14: .double 200
-    LIT_17: .double 3
+    LIT_2: .double 20.0
+    LIT_14: .double 200.0
+    LIT_17: .double 3.0
     LIT_7: .double 3.5
-    LIT_5: .double 4
-    LIT_1: .double 5
-    LIT_10: .double 50
-    LIT_3: .double 6
-    LIT_15: .double 60
-    LIT_4: .double 7
-    LIT_0: .double 8
+    LIT_5: .double 4.0
+    LIT_1: .double 5.0
+    LIT_10: .double 50.0
+    LIT_3: .double 6.0
+    LIT_15: .double 60.0
+    LIT_4: .double 7.0
+    LIT_0: .double 8.0
     LIT_9: .double 9.0
     VAR_ATIVO: .double 0.0
     VAR_CONTADOR: .double 0.0
@@ -498,11 +499,20 @@ pow_end_3:
     VLDR.F64 D0, [R0]
     VPUSH.F64 {D0}
 
-    @ salva o resultado no historico de memoria
-    VPOP.F64 {D0}           @ POP resultado final da FPU
-    SUB R10, R10, #8        @ Avanca o ponteiro da pilha de historico
-    VSTR.F64 D0, [R10]      @ Grava na RAM
+    @ Empilha Constante: 0xFF200000
+    LDR R0, =LIT_18
+    VLDR.F64 D0, [R0]
+    VPUSH.F64 {D0}
 
-    @ Fim do programa (use WRITE no RPN para acionar os LEDs)
+    @ Comando WRITE (efeito colateral)
+    VPOP.F64 {D1}           @ POP endereco (Double)
+    VPOP.F64 {D0}           @ POP valor (Double)
+    VCVT.U32.F64 S2, D1     @ Converte endereco para inteiro (unsigned)
+    VCVT.S32.F64 S3, D0     @ Converte valor para inteiro
+    VMOV R1, S2             @ R1 = endereco
+    VMOV R0, S3             @ R0 = valor
+    STR R0, [R1]            @ Escreve valor na memoria/periferico
+
+    @ Fim do programa
 _fim_programa:
     B _fim_programa         @ Halt

@@ -19,5 +19,5 @@
 (((CONTADOR) 60 <) (((CONTADOR) 1 +) CONTADOR) WHILE)
 (TRUE FALSE !=)
 ((((8 2 *) (3 1 +) -) 2 ^) FINAL)
-(FINAL)
+((FINAL) 0xFF200000 WRITE)
 (END)

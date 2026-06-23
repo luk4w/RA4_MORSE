@@ -49,7 +49,7 @@ O [CPUlator DE1-SoC](https://cpulator.01xz.net/?sys=arm-de1soc) tem duas opçõe
 - **Assembly** (`saida.s`): cole no editor e clique em *Compile and Load*.
 - **Hexadecimal** (`saida.hex`): menu **Load memory from file** → selecione `saida.hex` e configure **endereço inicial `0`**, **tamanho do elemento `4 bytes`** e **base `hexadecimal`**. O *Load memory* não altera o PC, então garanta **PC = `0`** antes de executar.
 
-Em ambos, o último resultado calculado fica travado em `D15`; **KEY0** mostra a *Word Baixa* e **KEY1** a *Word Alta* nos 32 LEDs.
+Em ambos, para exibir valores nos LEDs ou em outros periféricos, use o comando `WRITE` no programa RPN. Ao final da execução o programa trava em um laço infinito (`B _fim_programa`).
 
 ## Linguagem (RPN)
 
@@ -85,6 +85,8 @@ Estática e fortemente tipada. **Sem coerção** implícita entre `int` e `real`
 | Escrita memória | `(V MEM)` | define **e** inicializa a variável. |
 | Leitura memória | `(MEM)` | erro semântico se nunca definida. |
 | Histórico | `(N RES)` | resultado `N` expressões atrás (`0` = último). |
+| Escrita periférico | `(valor endereço WRITE)` | converte ambos para **inteiro 32 bits** (`VCVT.S32.F64` para o valor, `VCVT.U32.F64` para o endereço) e executa `STR` no endereço. Os registradores ARM são de 32 bits, portanto apenas os 32 bits inferiores do valor convertido são escritos. |
+| Atraso | `(ms DELAY)` | espera `ms` milissegundos usando o A9 Private Timer. |
 
 ```
 ( (A B >) (A B +) (A B -) IFELSE )          *{ se A>B então A+B senão A-B }*

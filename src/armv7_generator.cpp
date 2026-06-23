@@ -14,6 +14,26 @@ static std::string valorBoolLiteral(const ASTNode *node)
     return (node->operando == "TRUE") ? "1.0" : "0.0";
 }
 
+// Formata literais numericos (incluindo hexadecimais como 0xFF200000)
+// para formato float decimal padrão exigido pelo .double do GNU assembler.
+static std::string formatarDouble(const std::string &s)
+{
+    if (s.size() > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X'))
+    {
+        try {
+            unsigned long long val = std::stoull(s, nullptr, 16);
+            return std::to_string(static_cast<double>(val));
+        } catch (...) {
+            return s;
+        }
+    }
+    if (s.find('.') == std::string::npos && s.find('e') == std::string::npos && s.find('E') == std::string::npos)
+    {
+        return s + ".0";
+    }
+    return s;
+}
+
 // Como a AST foi projetada com opcodes ARMv7 VFP embutidos nos nós (VADD.F64, VLDR.F64)
 // facilita a vida, ou seja
 // primeiro emite o codigo dos filhos (deixando operandos na pilha FPU)
@@ -69,6 +89,8 @@ static bool produzValor(ASTNodeType tipo)
     case ASTNodeType::MEMORIA_LOAD:
     case ASTNodeType::MEMORIA_RES:
     case ASTNodeType::INSTRUCAO_VFP:
+    case ASTNodeType::INSTRUCAO_BITWISE:
+    case ASTNodeType::INSTRUCAO_BITWISE_NOT:
         return true;
     default:
         return false;
@@ -360,6 +382,111 @@ static void emitirNo(
         ss << "while_end_" << id << ":\n\n";
         break;
     }
+    case ASTNodeType::INSTRUCAO_BITWISE:
+    {
+        if (node->filhos.size() >= 2)
+        {
+            emitirNo(node->filhos[0], ss, literais, variaveis, contadorLabel);
+            emitirNo(node->filhos[1], ss, literais, variaveis, contadorLabel);
+        }
+        
+        ss << "    @ Operacao Bitwise Binaria: " << node->operando << "\n";
+        ss << "    VPOP.F64 {D1}           @ POP operando B\n";
+        ss << "    VPOP.F64 {D0}           @ POP operando A\n";
+        ss << "    VCVT.S32.F64 S2, D0     @ Converte A para inteiro (S2)\n";
+        ss << "    VCVT.S32.F64 S3, D1     @ Converte B para inteiro (S3)\n";
+        ss << "    VMOV R0, S2             @ R0 = A (inteiro)\n";
+        ss << "    VMOV R1, S3             @ R1 = B (inteiro)\n";
+        
+        // Aplica a operação bitwise no registrador ARM
+        if (node->opcode == "AND")
+            ss << "    AND R2, R0, R1          @ R2 = R0 AND R1\n";
+        else if (node->opcode == "ORR")
+            ss << "    ORR R2, R0, R1          @ R2 = R0 OR R1\n";
+        else if (node->opcode == "EOR")
+            ss << "    EOR R2, R0, R1          @ R2 = R0 XOR R1\n";
+        else if (node->opcode == "LSL")
+            ss << "    LSL R2, R0, R1          @ R2 = R0 << R1 (Shift Left)\n";
+        else if (node->opcode == "LSR")
+            ss << "    LSR R2, R0, R1          @ R2 = R0 >> R1 (Shift Right)\n";
+            
+        ss << "    VMOV S4, R2             @ Move resultado R2 para FPU\n";
+        ss << "    VCVT.F64.S32 D2, S4     @ Converte resultado para Double\n";
+        ss << "    VPUSH.F64 {D2}          @ PUSH pilha\n\n";
+        break;
+    }
+    case ASTNodeType::INSTRUCAO_BITWISE_NOT:
+    {
+        if (!node->filhos.empty())
+            emitirNo(node->filhos[0], ss, literais, variaveis, contadorLabel);
+            
+        ss << "    @ Operacao Bitwise Unaria: NOT\n";
+        ss << "    VPOP.F64 {D0}           @ POP operando A\n";
+        ss << "    VCVT.S32.F64 S2, D0     @ Converte A para inteiro (S2)\n";
+        ss << "    VMOV R0, S2             @ R0 = A (inteiro)\n";
+        ss << "    MVN R1, R0              @ R1 = NOT R0\n";
+        ss << "    VMOV S4, R1             @ Move resultado R1 para FPU\n";
+        ss << "    VCVT.F64.S32 D1, S4     @ Converte resultado para Double\n";
+        ss << "    VPUSH.F64 {D1}          @ PUSH pilha\n\n";
+        break;
+    }
+    case ASTNodeType::COMANDO_WRITE:
+    {
+        if (node->filhos.size() >= 2)
+        {
+            emitirNo(node->filhos[0], ss, literais, variaveis, contadorLabel);
+            emitirNo(node->filhos[1], ss, literais, variaveis, contadorLabel);
+        }
+        
+        ss << "    @ Comando WRITE\n";
+        ss << "    VPOP.F64 {D1}           @ POP endereco (Double)\n";
+        ss << "    VPOP.F64 {D0}           @ POP valor (Double)\n";
+        ss << "    VCVT.U32.F64 S2, D1     @ Converte endereco para inteiro (unsigned)\n";
+        ss << "    VCVT.S32.F64 S3, D0     @ Converte valor para inteiro\n";
+        ss << "    VMOV R1, S2             @ R1 = endereco\n";
+        ss << "    VMOV R0, S3             @ R0 = valor\n";
+        ss << "    STR R0, [R1]            @ Escreve valor na memoria/periferico\n\n";
+        break;
+    }
+    case ASTNodeType::COMANDO_DELAY:
+    {
+        if (!node->filhos.empty())
+            emitirNo(node->filhos[0], ss, literais, variaveis, contadorLabel);
+            
+        int id = contadorLabel++;
+        ss << "    @ Comando DELAY (Private Timer)\n";
+        ss << "    VPOP.F64 {D0}           @ POP tempo em ms\n";
+        ss << "    VCVT.S32.F64 S2, D0     @ Converte ms para inteiro\n";
+        ss << "    VMOV R0, S2             @ R0 = ms\n";
+        
+        // 1 ms = 200.000 ciclos no A9 Private Timer
+        ss << "    LDR R1, =200000         @ Frequencia base (200 MHz / 1000)\n";
+        ss << "    MUL R2, R0, R1          @ R2 = total de ciclos do timer\n";
+        ss << "    LDR R3, =0xFFFEC600     @ Endereco do A9 Private Timer\n";
+        ss << "    STR R2, [R3]            @ Define o valor de LOAD do timer\n";
+        
+        // Habilita o timer (Control Register bit 0 = 1, sem auto-reload ou interrupcoes)
+        // Control register fica no offset 8. Para evitar offset no STR, fazemos ADD R4, R3, #8
+        ss << "    MOV R1, #1\n";
+        ss << "    ADD R4, R3, #8          @ R4 = Control Register\n";
+        ss << "    STR R1, [R4]            @ Inicia o timer\n";
+        
+        // Loop de espera ativa (Polling)
+        // Interrupt Status Register fica no offset 12. Fazemos ADD R4, R3, #12
+        ss << "    ADD R4, R3, #12         @ R4 = Interrupt Status Register\n";
+        ss << "delay_loop_" << id << ":\n";
+        ss << "    LDR R1, [R4]            @ Le o Interrupt Status Register\n";
+        ss << "    TST R1, #1              @ Verifica bit de estouro (bit 0)\n";
+        ss << "    BEQ delay_loop_" << id << "  @ Continua esperando se 0\n";
+        
+        // Limpa a flag de estouro (escrevendo 1 no Interrupt Status Register) e desliga o timer
+        ss << "    MOV R1, #1\n";
+        ss << "    STR R1, [R4]            @ Reseta flag de interrupcao\n";
+        ss << "    MOV R1, #0\n";
+        ss << "    ADD R5, R3, #8          @ R5 = Control Register\n";
+        ss << "    STR R1, [R5]            @ Desliga o timer\n\n";
+        break;
+    }
     case ASTNodeType::SEQUENCIA:
         // logica de controle de emissao completa com labels proprios (contadorLabel reservado)
         // Na aritmetica funcional apenas emite os filhos para preservar efeitos (STORE/RES)
@@ -395,7 +522,7 @@ void gerarAssembly(ASTNode *arvore, std::string &codigoAssembly)
 
     // Literais numericos lidos do arquivo .txt
     for (const auto &p : literais)
-        ss << "    " << p.second << ": .double " << p.first << "\n";
+        ss << "    " << p.second << ": .double " << formatarDouble(p.first) << "\n";
     // Variaveis inicializadas em 0.0
     for (const auto &p : variaveis)
         ss << "    " << p.second << ": .double 0.0\n";

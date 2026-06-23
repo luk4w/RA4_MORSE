@@ -19,5 +19,5 @@
 (0 I)
 (((I) 4 <=) (((I) 1 +) I) WHILE)
 ((((ACUM) (I) +) 2 ^) TOTAL)
-(TOTAL)
+((TOTAL) 0xFF200000 WRITE)
 (END)
