@@ -75,6 +75,11 @@ Estática e fortemente tipada. **Sem coerção** implícita entre `int` e `real`
 | `/` `%` divisão inteira, resto | só `int` | `int` |
 | `< > <= >=` | mesmo tipo numérico | `bool` |
 | `== !=` | mesmo tipo | `bool` |
+| `AND` `OR` `XOR` bit a bit | só `int` | `int` |
+| `<<` `>>` deslocamento lógico | só `int` | `int` |
+| `NOT` complemento (unário) | só `int` | `int` |
+
+Bitwise são binários `(A B AND)`, `(A B <<)`... exceto `NOT`, que é unário `(A NOT)`. Operam sobre os 32 bits inteiros (convertidos da FPU): `AND`→`AND`, `OR`→`ORR`, `XOR`→`EOR`, `NOT`→`MVN`, `<<`→`LSL`, `>>`→`LSR`.
 
 ### Estruturas e memória
 
@@ -101,7 +106,7 @@ Comentários: `*{ ... }*`. Veja `tests/teste1.txt`..`teste4.txt` (válidos) e `t
 
 Gramática **LL(1)** fatorada à esquerda e livre de conflitos. FIRST/FOLLOW e a tabela de parsing são **calculados dinamicamente** por `src/gramatica.cpp` e impressos no início de cada execução.
 
-**Terminais:** `(` `)` `START` `END` `NUMERO` `IDENTIFICADOR` `OPERADOR` (`+ - * | / % ^`) · `OPERADOR_RELACIONAL` (`== != < > <= >=`) · `IFELSE` `WHILE` `RES` `TRUE` `FALSE`.
+**Terminais:** `(` `)` `START` `END` `NUMERO` `IDENTIFICADOR` `OPERADOR` (`+ - * | / % ^`) · `OPERADOR_RELACIONAL` (`== != < > <= >=`) · `OPERADOR_BITWISE` (`<< >>`) · `AND` `OR` `XOR` `NOT` · `WRITE` `DELAY` · `IFELSE` `WHILE` `RES` `TRUE` `FALSE`.
 **Não-terminais:** `programa` `sequencia_execucao` `avaliacao_sequencia` `expressao_aninhada` `operando` `corpo_expressao` `complemento_expressao` `resto_complemento` `operacao`.
 
 ```ebnf
@@ -111,9 +116,10 @@ avaliacao_sequencia   = "END" , ")" | corpo_expressao , ")" , sequencia_execucao
 expressao_aninhada    = "(" , corpo_expressao , ")" ;
 operando              = NUMERO | TRUE | FALSE | IDENTIFICADOR | RES | expressao_aninhada ;
 corpo_expressao       = operando , complemento_expressao ;
-complemento_expressao = operando , resto_complemento | ε ;
+complemento_expressao = operando , resto_complemento | NOT | DELAY | ε ;
 resto_complemento     = operacao | ε ;
-operacao              = OPERADOR | OPERADOR_RELACIONAL | WHILE | operando , "IFELSE" ;
+operacao              = OPERADOR | OPERADOR_RELACIONAL | OPERADOR_BITWISE
+                      | AND | OR | XOR | WRITE | WHILE | operando , "IFELSE" ;
 ```
 
 A RPN é capturada por `corpo_expressao`: operandos precedem a operação; `operando → expressao_aninhada` permite aninhamento ilimitado.
@@ -131,49 +137,105 @@ Cada construção gera um nó na AST (`ASTNode`) e recebe `tipoDado` em `verific
 | `(N RES)` | `operando RES` | `MEMORIA_RES` | tipo do resultado `N` atrás; `N` é `INT` |
 | `(A B op)` | `OPERADOR` | `INSTRUCAO_VFP` | `+ - *` preservam; `^` preserva a base; `\|`→`REAL`; `/ %`→`INT` |
 | `(A B rel)` | `OPERADOR_RELACIONAL` | `INSTRUCAO_CMP` | `BOOL` |
+| `(A B AND/OR/XOR)`, `(A B <</>>)` | `AND`/`OR`/`XOR`/`OPERADOR_BITWISE` | `INSTRUCAO_BITWISE` | `INT` |
+| `(A NOT)` | `NOT` | `INSTRUCAO_BITWISE_NOT` | `INT` |
 | `(C T E IFELSE)` | `operando IFELSE` | `COMANDO_IFELSE` | tipo comum dos ramos; `C` é `BOOL` |
 | `(C B WHILE)` | `WHILE` | `COMANDO_WHILE` | tipo do corpo; `C` é `BOOL` |
 | `(A B)` justaposto | `operando operando` (`resto_complemento → ε`) | `SEQUENCIA` | `?` (void); emite os filhos em ordem |
 
 ### FIRST / FOLLOW
 
-| Não-terminal | FIRST | FOLLOW |
-|--------------|-------|--------|
-| `programa` | `(` | `$` |
-| `sequencia_execucao` | `(` | `$` |
-| `avaliacao_sequencia` | `END` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `$` |
-| `expressao_aninhada` | `(` | `OPERADOR` `OPERADOR_RELACIONAL` `IFELSE` `WHILE` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` |
-| `operando` | `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `OPERADOR` `OPERADOR_RELACIONAL` `IFELSE` `WHILE` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` |
-| `corpo_expressao` | `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `)` |
-| `complemento_expressao` | `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `)` |
-| `resto_complemento` | `OPERADOR` `OPERADOR_RELACIONAL` `WHILE` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `)` |
-| `operacao` | `OPERADOR` `OPERADOR_RELACIONAL` `WHILE` `NUMERO` `TRUE` `FALSE` `IDENTIFICADOR` `RES` `(` | `)` |
+```
+--- CONJUNTO FIRST ---
+FIRST(EPSILON) = {  }
+FIRST(avaliacao_sequencia) = { END, FALSE, IDENTIFICADOR, NUMERO, PARENTESE_ESQ, RES, TRUE }
+FIRST(complemento_expressao) = { DELAY, FALSE, IDENTIFICADOR, NOT, NUMERO, PARENTESE_ESQ, RES, TRUE }
+FIRST(corpo_expressao) = { FALSE, IDENTIFICADOR, NUMERO, PARENTESE_ESQ, RES, TRUE }
+FIRST(expressao_aninhada) = { PARENTESE_ESQ }
+FIRST(operacao) = { AND, FALSE, IDENTIFICADOR, NUMERO, OPERADOR, OPERADOR_BITWISE, OPERADOR_RELACIONAL, OR, PARENTESE_ESQ, RES, TRUE, WHILE, WRITE, XOR }
+FIRST(operando) = { FALSE, IDENTIFICADOR, NUMERO, PARENTESE_ESQ, RES, TRUE }
+FIRST(programa) = { PARENTESE_ESQ }
+FIRST(resto_complemento) = { AND, FALSE, IDENTIFICADOR, NUMERO, OPERADOR, OPERADOR_BITWISE, OPERADOR_RELACIONAL, OR, PARENTESE_ESQ, RES, TRUE, WHILE, WRITE, XOR }
+FIRST(sequencia_execucao) = { PARENTESE_ESQ }
+
+--- CONJUNTO FOLLOW ---
+FOLLOW(EPSILON) = { PARENTESE_DIR }
+FOLLOW(avaliacao_sequencia) = { $ }
+FOLLOW(complemento_expressao) = { PARENTESE_DIR }
+FOLLOW(corpo_expressao) = { PARENTESE_DIR }
+FOLLOW(expressao_aninhada) = { AND, DELAY, FALSE, IDENTIFICADOR, IFELSE, NOT, NUMERO, OPERADOR, OPERADOR_BITWISE, OPERADOR_RELACIONAL, OR, PARENTESE_ESQ, RES, TRUE, WHILE, WRITE, XOR }
+FOLLOW(operacao) = { PARENTESE_DIR }
+FOLLOW(operando) = { AND, DELAY, FALSE, IDENTIFICADOR, IFELSE, NOT, NUMERO, OPERADOR, OPERADOR_BITWISE, OPERADOR_RELACIONAL, OR, PARENTESE_ESQ, RES, TRUE, WHILE, WRITE, XOR }
+FOLLOW(programa) = { $ }
+FOLLOW(resto_complemento) = { PARENTESE_DIR }
+FOLLOW(sequencia_execucao) = { $ }
+```
 
 ### Tabela de parsing LL(1)
 
 `M[Não-terminal, Terminal] = Produção`. Células vazias = erro sintático; `ε` = derivação vazia.
 
 ```
-M[programa, (]                       = ( START ) sequencia_execucao
-M[sequencia_execucao, (]             = ( avaliacao_sequencia
-M[avaliacao_sequencia, END]          = END )
-M[avaliacao_sequencia, ( NUMERO TRUE FALSE IDENTIFICADOR RES] = corpo_expressao ) sequencia_execucao
-M[expressao_aninhada, (]             = ( corpo_expressao )
-M[operando, NUMERO]                  = NUMERO
-M[operando, TRUE]                    = TRUE
-M[operando, FALSE]                   = FALSE
-M[operando, IDENTIFICADOR]           = IDENTIFICADOR
-M[operando, RES]                     = RES
-M[operando, (]                       = expressao_aninhada
-M[corpo_expressao, ( NUMERO TRUE FALSE IDENTIFICADOR RES] = operando complemento_expressao
-M[complemento_expressao, ( NUMERO TRUE FALSE IDENTIFICADOR RES] = operando resto_complemento
-M[complemento_expressao, )]          = ε
-M[resto_complemento, OPERADOR OPERADOR_RELACIONAL WHILE ( NUMERO TRUE FALSE IDENTIFICADOR RES] = operacao
-M[resto_complemento, )]              = ε
-M[operacao, OPERADOR]                = OPERADOR
-M[operacao, OPERADOR_RELACIONAL]     = OPERADOR_RELACIONAL
-M[operacao, WHILE]                   = WHILE
-M[operacao, ( NUMERO TRUE FALSE IDENTIFICADOR RES] = operando IFELSE
+M[avaliacao_sequencia, END] = { END PARENTESE_DIR }
+M[avaliacao_sequencia, FALSE] = { corpo_expressao PARENTESE_DIR sequencia_execucao }
+M[avaliacao_sequencia, IDENTIFICADOR] = { corpo_expressao PARENTESE_DIR sequencia_execucao }
+M[avaliacao_sequencia, NUMERO] = { corpo_expressao PARENTESE_DIR sequencia_execucao }
+M[avaliacao_sequencia, PARENTESE_ESQ] = { corpo_expressao PARENTESE_DIR sequencia_execucao }
+M[avaliacao_sequencia, RES] = { corpo_expressao PARENTESE_DIR sequencia_execucao }
+M[avaliacao_sequencia, TRUE] = { corpo_expressao PARENTESE_DIR sequencia_execucao }
+M[complemento_expressao, DELAY] = { DELAY }
+M[complemento_expressao, FALSE] = { operando resto_complemento }
+M[complemento_expressao, IDENTIFICADOR] = { operando resto_complemento }
+M[complemento_expressao, NOT] = { NOT }
+M[complemento_expressao, NUMERO] = { operando resto_complemento }
+M[complemento_expressao, PARENTESE_DIR] = { EPSILON }
+M[complemento_expressao, PARENTESE_ESQ] = { operando resto_complemento }
+M[complemento_expressao, RES] = { operando resto_complemento }
+M[complemento_expressao, TRUE] = { operando resto_complemento }
+M[corpo_expressao, FALSE] = { operando complemento_expressao }
+M[corpo_expressao, IDENTIFICADOR] = { operando complemento_expressao }
+M[corpo_expressao, NUMERO] = { operando complemento_expressao }
+M[corpo_expressao, PARENTESE_ESQ] = { operando complemento_expressao }
+M[corpo_expressao, RES] = { operando complemento_expressao }
+M[corpo_expressao, TRUE] = { operando complemento_expressao }
+M[expressao_aninhada, PARENTESE_ESQ] = { PARENTESE_ESQ corpo_expressao PARENTESE_DIR }
+M[operacao, AND] = { AND }
+M[operacao, FALSE] = { operando IFELSE }
+M[operacao, IDENTIFICADOR] = { operando IFELSE }
+M[operacao, NUMERO] = { operando IFELSE }
+M[operacao, OPERADOR] = { OPERADOR }
+M[operacao, OPERADOR_BITWISE] = { OPERADOR_BITWISE }
+M[operacao, OPERADOR_RELACIONAL] = { OPERADOR_RELACIONAL }
+M[operacao, OR] = { OR }
+M[operacao, PARENTESE_ESQ] = { operando IFELSE }
+M[operacao, RES] = { operando IFELSE }
+M[operacao, TRUE] = { operando IFELSE }
+M[operacao, WHILE] = { WHILE }
+M[operacao, WRITE] = { WRITE }
+M[operacao, XOR] = { XOR }
+M[operando, FALSE] = { FALSE }
+M[operando, IDENTIFICADOR] = { IDENTIFICADOR }
+M[operando, NUMERO] = { NUMERO }
+M[operando, PARENTESE_ESQ] = { expressao_aninhada }
+M[operando, RES] = { RES }
+M[operando, TRUE] = { TRUE }
+M[programa, PARENTESE_ESQ] = { PARENTESE_ESQ START PARENTESE_DIR sequencia_execucao }
+M[resto_complemento, AND] = { operacao }
+M[resto_complemento, FALSE] = { operacao }
+M[resto_complemento, IDENTIFICADOR] = { operacao }
+M[resto_complemento, NUMERO] = { operacao }
+M[resto_complemento, OPERADOR] = { operacao }
+M[resto_complemento, OPERADOR_BITWISE] = { operacao }
+M[resto_complemento, OPERADOR_RELACIONAL] = { operacao }
+M[resto_complemento, OR] = { operacao }
+M[resto_complemento, PARENTESE_DIR] = { EPSILON }
+M[resto_complemento, PARENTESE_ESQ] = { operacao }
+M[resto_complemento, RES] = { operacao }
+M[resto_complemento, TRUE] = { operacao }
+M[resto_complemento, WHILE] = { operacao }
+M[resto_complemento, WRITE] = { operacao }
+M[resto_complemento, XOR] = { operacao }
+M[sequencia_execucao, PARENTESE_ESQ] = { PARENTESE_ESQ avaliacao_sequencia }
 ```
 
 A ausência de colisão em qualquer `M[A, t]` prova que a gramática é **LL(1)**.
