@@ -9,7 +9,7 @@ Compilador para uma linguagem em **notação polonesa reversa (RPN)**. Pipeline 
 
 O Assembly (`saida.s`) e o **hexadecimal** (`saida.hex`) são gerados para o processador **ARMv7 (v16.1)** simulado no [CPUlator DE1-SoC](https://cpulator.01xz.net/?sys=arm-de1soc). Os valores são tratados como `double` IEEE 754 (64 bits) na FPU.
 
-O hexadecimal é produzido por um **montador interno de duas passadas** (`src/hex_emitter.cpp`): ele converte cada instrução do Assembly no seu opcode ARMv7 de 32 bits (resolvendo labels, branches, *literal pool* e o `.data`), **sem depender de toolchain externa**. As codificações foram validadas byte a byte contra o `arm-none-eabi-as`.
+O hexadecimal é produzido por um **montador interno** (`src/hex_emitter.cpp`): ele converte cada instrução do Assembly no seu opcode ARMv7 de 32 bits, sem depender de toolchain externa. As codificações de cada instrução foram validadas contra o `arm-none-eabi-as`.
 
 ## Build & Execução
 
