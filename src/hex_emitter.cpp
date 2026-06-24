@@ -200,12 +200,102 @@ namespace
         return h.str();
     }
 
+    // Embrulha a mesma imagem de memoria num ELF32 ARM little-endian minimo
+    std::string buildElf(const std::map<uint32_t, uint8_t> &mem)
+    {
+        // imagem contigua 0..maxAddr (arredondada a palavra), buracos = 0
+        uint32_t imgsize = 0;
+        if (!mem.empty()) imgsize = ((mem.rbegin()->first / 4) + 1) * 4;
+        std::vector<uint8_t> img(imgsize, 0);
+        for (const auto &kv : mem)
+            if (kv.first < imgsize) img[kv.first] = kv.second;
+
+        const uint32_t EHSIZE = 52, PHSIZE = 32, SHSIZE = 40;
+        const uint32_t PHOFF = EHSIZE;             // 52
+        const uint32_t DATAOFF = EHSIZE + PHSIZE;  // 84
+
+        // tabela de nomes das secoes (.shstrtab): "\0.text\0.shstrtab\0"
+        std::string shstr;
+        shstr += '\0';
+        const uint32_t NAME_TEXT = (uint32_t)shstr.size(); shstr += ".text"; shstr += '\0';
+        const uint32_t NAME_SHSTR = (uint32_t)shstr.size(); shstr += ".shstrtab"; shstr += '\0';
+
+        const uint32_t shstrOff = DATAOFF + imgsize;
+        const uint32_t shstrSize = (uint32_t)shstr.size();
+        const uint32_t SHOFF = (shstrOff + shstrSize + 3u) & ~3u; // section headers alinhados a 4
+        const uint32_t SHNUM = 3, SHSTRNDX = 2;
+
+        std::string b;
+        auto u16 = [&](uint32_t v) { b += (char)(v & 0xFF); b += (char)((v >> 8) & 0xFF); };
+        auto u32 = [&](uint32_t v) {
+            b += (char)(v & 0xFF);         b += (char)((v >> 8) & 0xFF);
+            b += (char)((v >> 16) & 0xFF); b += (char)((v >> 24) & 0xFF);
+        };
+        // Elf32_Shdr: name,type,flags,addr,offset,size,link,info,addralign,entsize
+        auto shdr = [&](uint32_t name, uint32_t type, uint32_t flags, uint32_t addr,
+                        uint32_t off, uint32_t sz, uint32_t align) {
+            u32(name); u32(type); u32(flags); u32(addr);
+            u32(off); u32(sz); u32(0); u32(0); u32(align); u32(0);
+        };
+
+        // ----- Elf32_Ehdr -----
+        b += (char)0x7F; b += 'E'; b += 'L'; b += 'F'; // e_ident magic
+        b += (char)1;  // EI_CLASS = ELFCLASS32
+        b += (char)1;  // EI_DATA  = ELFDATA2LSB (little-endian)
+        b += (char)1;  // EI_VERSION = EV_CURRENT
+        for (int i = 0; i < 9; i++) b += (char)0; // EI_OSABI + ABIVERSION + pad
+        u16(2);            // e_type    = ET_EXEC
+        u16(40);           // e_machine = EM_ARM
+        u32(1);            // e_version
+        u32(0);            // e_entry   = 0
+        u32(PHOFF);        // e_phoff
+        u32(SHOFF);        // e_shoff
+        u32(0x05000000u);  // e_flags   = EF_ARM_EABI_VER5
+        u16(EHSIZE);       // e_ehsize
+        u16(PHSIZE);       // e_phentsize
+        u16(1);            // e_phnum
+        u16(SHSIZE);       // e_shentsize
+        u16(SHNUM);        // e_shnum
+        u16(SHSTRNDX);     // e_shstrndx
+
+        // ----- Elf32_Phdr (PT_LOAD) -----
+        u32(1);            // p_type   = PT_LOAD
+        u32(DATAOFF);      // p_offset
+        u32(0);            // p_vaddr
+        u32(0);            // p_paddr
+        u32(imgsize);      // p_filesz
+        u32(imgsize);      // p_memsz
+        u32(7);            // p_flags  = R+W+X
+        u32(4);            // p_align
+
+        // ----- imagem carregavel -----
+        b.append(reinterpret_cast<const char *>(img.data()), img.size());
+
+        // ----- .shstrtab -----
+        b.append(shstr.data(), shstr.size());
+
+        // padding ate os section headers (alinhamento a 4)
+        while (b.size() < SHOFF) b += (char)0;
+
+        // ----- Section headers -----
+        // [0] NULL
+        shdr(0, 0, 0, 0, 0, 0, 0);
+        // [1] .text  -> PROGBITS, ALLOC|EXECINSTR
+        shdr(NAME_TEXT, 1 /*PROGBITS*/, 0x6 /*ALLOC|EXEC*/, 0, DATAOFF, imgsize, 4);
+        // [2] .shstrtab -> STRTAB
+        shdr(NAME_SHSTR, 3 /*STRTAB*/, 0, 0, shstrOff, shstrSize, 1);
+
+        return b;
+    }
+
 }
 
-std::string gerarHex(const std::string &assembly, int &naoSuportadas)
+// Faz o parse do Assembly e codifica tudo numa imagem de memoria (endereco->byte,
+// contigua de 0x0, buracos implicitos = zeros). Reutilizada pelo .hex e pelo .elf.
+static std::map<uint32_t, uint8_t> montarImagem(const std::string &assembly, int &naoSuportadas)
 {
     naoSuportadas = 0;
-    std::map<uint32_t, uint8_t> mem; // imagem de memoria (para o Intel HEX)
+    std::map<uint32_t, uint8_t> mem; // imagem de memoria
     auto putWord = [&](uint32_t addr, uint32_t w)
     { for (int i = 0; i < 4; i++) mem[addr + i] = (uint8_t)((w >> (8 * i)) & 0xFF); };
 
@@ -335,15 +425,6 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
 
 
     // ----- PASSADA D: codificacao -----
-    std::stringstream out;
-    auto emitLine = [&](uint32_t a, uint32_t w, const std::string &cmt)
-    {
-        out << std::hex << std::uppercase << std::setfill('0')
-            << std::setw(8) << a << "  " << std::setw(8) << w
-            << std::dec << std::nouppercase << "  ; " << cmt << "\n";
-    };
-
-    out << "; ==== .text (codigo de maquina ARMv7) ====\n";
     for (const Instr &ins : code)
     {
         std::string M = upper(ins.mnem);
@@ -650,40 +731,40 @@ std::string gerarHex(const std::string &assembly, int &naoSuportadas)
 
         if (ok)
         {
-            emitLine(ins.addr, w, ins.raw);
             putWord(ins.addr, w);
         }
         else
         {
             naoSuportadas++;
-            emitLine(ins.addr, 0x00000000u, ins.raw + "   [PENDENTE - fase 2]");
             putWord(ins.addr, 0x00000000u);
         }
     }
 
     // ----- .data -----
-    out << "; ==== .data ====\n";
+    // LABEL nao ocupa espaco; SPACE (pilha) fica como zeros (buracos preenchidos
+    // no build); so o DOUBLE grava bytes na imagem.
     for (const DataItem &it : data)
     {
-        if (it.kind == DataItem::LABEL)
-            out << "; " << it.label << ":\n";
-        else if (it.kind == DataItem::SPACE)
-        {
-            out << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
-                << it.addr << std::dec << std::nouppercase
-                << "  .space " << it.size << " (zeros)\n";
-        }
-        else // DOUBLE
+        if (it.kind == DataItem::DOUBLE)
         {
             uint32_t lo = (uint32_t)(it.bits & 0xFFFFFFFF);
             uint32_t hi = (uint32_t)(it.bits >> 32);
-            out << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
-                << it.addr << "  " << std::setw(8) << lo << " " << std::setw(8) << hi
-                << std::dec << std::nouppercase << "  ; .double " << it.dval << "\n";
             putWord(it.addr, lo);
             putWord(it.addr + 4, hi);
         }
     }
 
-    return buildPlainHex(mem);
+    return mem;
+}
+
+// Codigo de maquina como texto: uma palavra de 32 bits (hex) por linha.
+std::string gerarHex(const std::string &assembly, int &naoSuportadas)
+{
+    return buildPlainHex(montarImagem(assembly, naoSuportadas));
+}
+
+// Mesma imagem, embrulhada num ELF32 ARM carregavel direto pelo CPUlator.
+std::string gerarElf(const std::string &assembly, int &naoSuportadas)
+{
+    return buildElf(montarImagem(assembly, naoSuportadas));
 }

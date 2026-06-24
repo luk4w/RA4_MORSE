@@ -348,6 +348,17 @@ int main(int argc, char *argv[])
                 cout << " (" << pendentes << " instrucoes sem encoder)";
             cout << "\n";
         }
+
+        // Mesma imagem embrulhada num ELF32 ARM
+        int pendentesElf = 0;
+        std::string elf = gerarElf(codigoAssembly, pendentesElf);
+        ofstream elfFile("saida.elf", std::ios::binary);
+        if (elfFile.is_open())
+        {
+            elfFile.write(elf.data(), (std::streamsize)elf.size());
+            elfFile.close();
+            cout << "ELF gerado em: saida.elf\n";
+        }
     }
     catch (const std::exception &e)
     {

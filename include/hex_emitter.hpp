@@ -8,4 +8,6 @@
 // naoSuportadas conta instrucoes sem encoder.
 std::string gerarHex(const std::string &assembly, int &naoSuportadas);
 
+std::string gerarElf(const std::string &assembly, int &naoSuportadas);
+
 #endif
