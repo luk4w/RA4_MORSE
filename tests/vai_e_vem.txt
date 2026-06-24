@@ -1,7 +1,6 @@
 (START)
 
 *{ ===== Vai e vem: um LED percorre os 32 LEDs (bits 0..31) e volta ===== }*
-*{ Todo o laco fica numa unica linha (o parser trata 1 linha = 1 expressao). }*
 
 *{ LED = mascara do LED aceso; comeca no LEDR0 (bit 0) }*
 (1 LED)
@@ -10,7 +9,6 @@
 (1 DIR)
 
 *{ Topo = bit 31. Como o WRITE usa inteiro COM SINAL, o bit 31 (0x80000000) }*
-*{ Laco: acende/espera; corrige DIR nas pontas (-2147483648=bit31, 1=bit0); move o LED }*
 ( (TRUE) ( ( ( ((LED) 0xFF200000 WRITE) (100 DELAY) ) ( ( ((DIR) 1 ==) ( ((LED) (0 2147483648 -) ==) (0) (1) IFELSE ) ( ((LED) 1 ==) (1) (0) IFELSE ) IFELSE ) DIR ) ) ( ( ((DIR) 1 ==) ( (LED) 1 << ) ( (LED) 1 >> ) IFELSE ) LED ) ) WHILE )
 
 (END)
