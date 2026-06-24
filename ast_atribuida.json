@@ -7,14 +7,14 @@
     {
       "tipo": "COMANDO_WRITE",
       "tipoDado": "DESCONHECIDO",
-      "linha": 3,
+      "linha": 4,
       "operando": "WRITE",
       "opcode": "WRITE",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 3,
+          "linha": 4,
           "operando": "1",
           "opcode": "NUMERO",
           "filhos": []
@@ -22,7 +22,7 @@
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 3,
+          "linha": 4,
           "operando": "0xFF200000",
           "opcode": "NUMERO",
           "filhos": []
@@ -32,14 +32,14 @@
     {
       "tipo": "COMANDO_DELAY",
       "tipoDado": "DESCONHECIDO",
-      "linha": 3,
+      "linha": 5,
       "operando": "DELAY",
       "opcode": "DELAY",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 3,
+          "linha": 5,
           "operando": "600",
           "opcode": "NUMERO",
           "filhos": []
@@ -49,14 +49,14 @@
     {
       "tipo": "COMANDO_WRITE",
       "tipoDado": "DESCONHECIDO",
-      "linha": 3,
+      "linha": 6,
       "operando": "WRITE",
       "opcode": "WRITE",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 3,
+          "linha": 6,
           "operando": "0",
           "opcode": "NUMERO",
           "filhos": []
@@ -64,7 +64,7 @@
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 3,
+          "linha": 6,
           "operando": "0xFF200000",
           "opcode": "NUMERO",
           "filhos": []
@@ -74,14 +74,14 @@
     {
       "tipo": "COMANDO_DELAY",
       "tipoDado": "DESCONHECIDO",
-      "linha": 3,
+      "linha": 7,
       "operando": "DELAY",
       "opcode": "DELAY",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 3,
+          "linha": 7,
           "operando": "450",
           "opcode": "NUMERO",
           "filhos": []
@@ -91,14 +91,14 @@
     {
       "tipo": "COMANDO_WRITE",
       "tipoDado": "DESCONHECIDO",
-      "linha": 4,
+      "linha": 8,
       "operando": "WRITE",
       "opcode": "WRITE",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 4,
+          "linha": 8,
           "operando": "1",
           "opcode": "NUMERO",
           "filhos": []
@@ -106,7 +106,7 @@
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 4,
+          "linha": 8,
           "operando": "0xFF200000",
           "opcode": "NUMERO",
           "filhos": []
@@ -116,14 +116,14 @@
     {
       "tipo": "COMANDO_DELAY",
       "tipoDado": "DESCONHECIDO",
-      "linha": 4,
+      "linha": 9,
       "operando": "DELAY",
       "opcode": "DELAY",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 4,
+          "linha": 9,
           "operando": "600",
           "opcode": "NUMERO",
           "filhos": []
@@ -133,14 +133,14 @@
     {
       "tipo": "COMANDO_WRITE",
       "tipoDado": "DESCONHECIDO",
-      "linha": 4,
+      "linha": 10,
       "operando": "WRITE",
       "opcode": "WRITE",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 4,
+          "linha": 10,
           "operando": "0",
           "opcode": "NUMERO",
           "filhos": []
@@ -148,7 +148,7 @@
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 4,
+          "linha": 10,
           "operando": "0xFF200000",
           "opcode": "NUMERO",
           "filhos": []
@@ -158,14 +158,14 @@
     {
       "tipo": "COMANDO_DELAY",
       "tipoDado": "DESCONHECIDO",
-      "linha": 4,
+      "linha": 11,
       "operando": "DELAY",
       "opcode": "DELAY",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 4,
+          "linha": 11,
           "operando": "900",
           "opcode": "NUMERO",
           "filhos": []
@@ -175,14 +175,14 @@
     {
       "tipo": "COMANDO_WRITE",
       "tipoDado": "DESCONHECIDO",
-      "linha": 7,
+      "linha": 14,
       "operando": "WRITE",
       "opcode": "WRITE",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 7,
+          "linha": 14,
           "operando": "1",
           "opcode": "NUMERO",
           "filhos": []
@@ -190,7 +190,7 @@
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 7,
+          "linha": 14,
           "operando": "0xFF200000",
           "opcode": "NUMERO",
           "filhos": []
@@ -200,434 +200,14 @@
     {
       "tipo": "COMANDO_DELAY",
       "tipoDado": "DESCONHECIDO",
-      "linha": 7,
+      "linha": 15,
       "operando": "DELAY",
       "opcode": "DELAY",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 7,
-          "operando": "300",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 7,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 7,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 7,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 7,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 7,
-          "operando": "900",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 10,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 10,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 10,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 10,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 10,
-          "operando": "300",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 10,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 10,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 10,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 10,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 10,
-          "operando": "450",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 11,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 11,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 11,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 11,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 11,
-          "operando": "600",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 11,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 11,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 11,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 11,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 11,
-          "operando": "450",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 12,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 12,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 12,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 12,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 12,
-          "operando": "300",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 12,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 12,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 12,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 12,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 12,
-          "operando": "450",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 13,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 13,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 13,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 13,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 13,
-          "operando": "300",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 13,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 13,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 13,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 13,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 13,
-          "operando": "900",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 16,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 16,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 16,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 16,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 16,
+          "linha": 15,
           "operando": "300",
           "opcode": "NUMERO",
           "filhos": []
@@ -662,48 +242,6 @@
     {
       "tipo": "COMANDO_DELAY",
       "tipoDado": "DESCONHECIDO",
-      "linha": 16,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 16,
-          "operando": "450",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 17,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 17,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 17,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
       "linha": 17,
       "operando": "DELAY",
       "opcode": "DELAY",
@@ -712,216 +250,6 @@
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
           "linha": 17,
-          "operando": "600",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 17,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 17,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 17,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 17,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 17,
-          "operando": "450",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 18,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 18,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 18,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 18,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 18,
-          "operando": "300",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 18,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 18,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 18,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 18,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 18,
-          "operando": "450",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 19,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 19,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 19,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 19,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 19,
-          "operando": "300",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 19,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 19,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 19,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 19,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 19,
           "operando": "900",
           "opcode": "NUMERO",
           "filhos": []
@@ -931,14 +259,14 @@
     {
       "tipo": "COMANDO_WRITE",
       "tipoDado": "DESCONHECIDO",
-      "linha": 22,
+      "linha": 20,
       "operando": "WRITE",
       "opcode": "WRITE",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 22,
+          "linha": 20,
           "operando": "1",
           "opcode": "NUMERO",
           "filhos": []
@@ -946,7 +274,7 @@
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 22,
+          "linha": 20,
           "operando": "0xFF200000",
           "opcode": "NUMERO",
           "filhos": []
@@ -956,15 +284,15 @@
     {
       "tipo": "COMANDO_DELAY",
       "tipoDado": "DESCONHECIDO",
-      "linha": 22,
+      "linha": 21,
       "operando": "DELAY",
       "opcode": "DELAY",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 22,
-          "operando": "600",
+          "linha": 21,
+          "operando": "300",
           "opcode": "NUMERO",
           "filhos": []
         }
@@ -989,90 +317,6 @@
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
           "linha": 22,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 22,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 22,
-          "operando": "450",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 23,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 23,
-          "operando": "1",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 23,
-          "operando": "0xFF200000",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_DELAY",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 23,
-      "operando": "DELAY",
-      "opcode": "DELAY",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 23,
-          "operando": "600",
-          "opcode": "NUMERO",
-          "filhos": []
-        }
-      ]
-    },
-    {
-      "tipo": "COMANDO_WRITE",
-      "tipoDado": "DESCONHECIDO",
-      "linha": 23,
-      "operando": "WRITE",
-      "opcode": "WRITE",
-      "filhos": [
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 23,
-          "operando": "0",
-          "opcode": "NUMERO",
-          "filhos": []
-        },
-        {
-          "tipo": "NUMERO_LITERAL",
-          "tipoDado": "INT",
-          "linha": 23,
           "operando": "0xFF200000",
           "opcode": "NUMERO",
           "filhos": []
@@ -1124,14 +368,14 @@
     {
       "tipo": "COMANDO_DELAY",
       "tipoDado": "DESCONHECIDO",
-      "linha": 24,
+      "linha": 25,
       "operando": "DELAY",
       "opcode": "DELAY",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 24,
+          "linha": 25,
           "operando": "600",
           "opcode": "NUMERO",
           "filhos": []
@@ -1141,14 +385,14 @@
     {
       "tipo": "COMANDO_WRITE",
       "tipoDado": "DESCONHECIDO",
-      "linha": 24,
+      "linha": 26,
       "operando": "WRITE",
       "opcode": "WRITE",
       "filhos": [
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 24,
+          "linha": 26,
           "operando": "0",
           "opcode": "NUMERO",
           "filhos": []
@@ -1156,7 +400,763 @@
         {
           "tipo": "NUMERO_LITERAL",
           "tipoDado": "INT",
-          "linha": 24,
+          "linha": 26,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 27,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 27,
+          "operando": "450",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 28,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 28,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 28,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 29,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 29,
+          "operando": "300",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 30,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 30,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 30,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 31,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 31,
+          "operando": "450",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 32,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 32,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 32,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 33,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 33,
+          "operando": "300",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 34,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 34,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 34,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 35,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 35,
+          "operando": "900",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 38,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 38,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 38,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 39,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 39,
+          "operando": "300",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 40,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 40,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 40,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 41,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 41,
+          "operando": "450",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 42,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 42,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 42,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 43,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 43,
+          "operando": "600",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 44,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 44,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 44,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 45,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 45,
+          "operando": "450",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 46,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 46,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 46,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 47,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 47,
+          "operando": "300",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 48,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 48,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 48,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 49,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 49,
+          "operando": "450",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 50,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 50,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 50,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 51,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 51,
+          "operando": "300",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 52,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 52,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 52,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 53,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 53,
+          "operando": "900",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 56,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 56,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 56,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 57,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 57,
+          "operando": "600",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 58,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 58,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 58,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 59,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 59,
+          "operando": "450",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 60,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 60,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 60,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 61,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 61,
+          "operando": "600",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 62,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 62,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 62,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 63,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 63,
+          "operando": "450",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 64,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 64,
+          "operando": "1",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 64,
+          "operando": "0xFF200000",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_DELAY",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 65,
+      "operando": "DELAY",
+      "opcode": "DELAY",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 65,
+          "operando": "600",
+          "opcode": "NUMERO",
+          "filhos": []
+        }
+      ]
+    },
+    {
+      "tipo": "COMANDO_WRITE",
+      "tipoDado": "DESCONHECIDO",
+      "linha": 66,
+      "operando": "WRITE",
+      "opcode": "WRITE",
+      "filhos": [
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 66,
+          "operando": "0",
+          "opcode": "NUMERO",
+          "filhos": []
+        },
+        {
+          "tipo": "NUMERO_LITERAL",
+          "tipoDado": "INT",
+          "linha": 66,
           "operando": "0xFF200000",
           "opcode": "NUMERO",
           "filhos": []
